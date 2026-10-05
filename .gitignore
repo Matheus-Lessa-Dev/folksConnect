@@ -1,0 +1,9 @@
+.env
+.dart_tool/
+build/
+frontend/build/
+frontend/.dart_tool/
+backend/.dart_tool/
+.idea/
+.vscode/
+*.log

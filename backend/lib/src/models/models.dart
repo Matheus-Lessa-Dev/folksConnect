@@ -1,0 +1,13 @@
+export 'cargo.dart';
+export 'checklist.dart';
+export 'checklist_tarefa.dart';
+export 'cliente.dart';
+export 'divulgacao.dart';
+export 'divulgacao_vaga.dart';
+export 'permissao.dart';
+export 'prioridade.dart';
+export 'projeto.dart';
+export 'tarefa.dart';
+export 'usuario.dart';
+export 'usuario_permissao.dart';
+export 'vaga.dart';
