@@ -38,3 +38,4 @@ docker compose config
 - Nao editar `pubspec.lock` manualmente.
 - Migrations devem ser SQL compativel com PostgreSQL e versionadas em `backend/database/migrations/`.
 - Nao afirmar que colunas do banco sao definitivas quando nao estiverem confirmadas pelo SQL ou diagrama completo.
+- Usar modelo de gerenciamento gitflow
