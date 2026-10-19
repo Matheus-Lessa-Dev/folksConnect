@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'core/theme/folks_theme.dart';
+import 'features/kanban/kanban_screen.dart';
+
 void main() {
   runApp(const FolksConnectApp());
 }
@@ -11,12 +14,10 @@ class FolksConnectApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Folks Connect',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-      ),
-      home: const Scaffold(
-        body: SizedBox.expand(),
-      ),
+      debugShowCheckedModeBanner: false,
+      theme: FolksTheme.dark,
+      home: const KanbanScreen(),
+      routes: {'/kanban': (_) => const KanbanScreen()},
     );
   }
 }
