@@ -19,3 +19,13 @@ Se a feature correspondente existir, continuar nela. `main` fica reservada a ver
 2. `feature/tela-login`: formulario e transicao da abertura ao login; depende da primeira feature.
 
 As regras permanentes do projeto estao em `AGENTS.md`.
+
+## Login e integracao
+
+- Abertura faz precache da marca e passa para o login, sem manter a tela de abertura no historico.
+- Usuario e senha obrigatorios, senha oculta, suporte a colagem/autofill e acao de teclado.
+- `AuthenticationService` e a fronteira de integracao. O backend atual so oferece `/api` e `/api/health`; nao existe login nem recuperacao de senha.
+- O servico padrao retorna indisponibilidade e nunca autentica credenciais ficticias. Implementar o contrato quando a API estiver definida.
+- Nao registrar senhas nem salva-las em armazenamento local. O campo de senha e limpo apos autenticacao bem-sucedida.
+- O link de recuperacao informa indisponibilidade ate haver um fluxo real; nao simula envio de email.
+- Em viewports baixos, teclado aberto e texto ampliado, o formulario permite rolagem. No web, nao desenhamos barras falsas de status/gestos.
