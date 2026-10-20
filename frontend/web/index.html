@@ -18,21 +18,36 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="description" content="Folks Connect — gestão de tarefas e recrutamento.">
+  <meta name="theme-color" content="#3D3D3D">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="frontend">
+  <meta name="apple-mobile-web-app-title" content="Folks Connect">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>frontend</title>
+  <title>Folks Connect</title>
   <link rel="manifest" href="manifest.json">
+  <style>
+    html, body { margin: 0; width: 100%; height: 100%; background: #3D3D3D; }
+    #folks-startup { position: fixed; inset: 0; display: grid; place-items: center; background: #3D3D3D; }
+    #folks-startup img { width: 180px; height: 218px; object-fit: contain; }
+  </style>
 </head>
 <body>
+  <div id="folks-startup" role="status" aria-label="Carregando Folks Connect">
+    <img src="assets/assets/branding/folks-white.png" alt="Folks RH">
+  </div>
+  <script>
+    window.addEventListener('flutter-first-frame', function () {
+      document.getElementById('folks-startup')?.remove();
+    }, { once: true });
+  </script>
   <!--
     You can customize the "flutter_bootstrap.js" script.
     This is useful to provide a custom configuration to the Flutter loader

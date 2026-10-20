@@ -39,3 +39,11 @@ docker compose config
 - Migrations devem ser SQL compativel com PostgreSQL e versionadas em `backend/database/migrations/`.
 - Nao afirmar que colunas do banco sao definitivas quando nao estiverem confirmadas pelo SQL ou diagrama completo.
 - Usar modelo de gerenciamento gitflow
+
+## Regras permanentes de interface e Gitflow
+
+- O Figma Folks Mobile e a fonte de verdade para telas, cores, tipografia, assets e espacamentos: https://www.figma.com/design/H2ATifgEvdrl05TyUbcQdr/Folks-Mobile.
+- Reutilizar os assets originais e conferir a tela implementada com o respectivo quadro. Nao redesenhar a marca ou substituir a paleta por um tema generico.
+- Iniciar cada tela ou solicitacao nova em `feature/<nome-da-funcionalidade>`, a partir de `develop`. Se ja existir uma feature correspondente, continuar nela.
+- Manter `main` para versoes estaveis e `develop` para integracao. Documentar dependencias entre features; nao misturar funcionalidades sem relacao.
+- Verificar as alteracoes existentes antes de trocar de branch e preservar o trabalho do usuario.
