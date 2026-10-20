@@ -26,7 +26,13 @@ As demais abas ficam desabilitadas ate suas respectivas features existirem. Impo
 
 O quadro e os tres estados sobrepostos seguem a composicao observada no Figma: fundo roxo, cartoes roxos, formularios azul-escuro, navegacao azul, acento laranja e botao adicionar dourado. Os tokens estao centralizados em `frontend/lib/core/theme/folks_theme.dart`.
 
-Os valores de cor foram aproximados a partir da referencia visual; a conexao do Figma nao permitiu extrair todas as propriedades nesta sessao. A tipografia usa a familia Times New Roman nos titulos e Arial no corpo, com fallback; fontes nao foram incorporadas. O simbolo central usa provisoriamente `Icons.hub_outlined` e deve ser substituido pelo asset original exportado do Figma. Portanto, esta entrega ainda precisa de uma passada de fidelidade com tokens, fontes e marca exportados antes de ser considerada identica ao layout.
+As propriedades das camadas confirmaram Inria Serif Bold nos titulos (30 px no quadro e 18 px nos cartoes), Inter nas colunas, categorias e metadados, e Inria Sans no sinal de adicionar. As familias foram incorporadas como assets locais com licencas OFL. A renderizacao nao depende de fontes instaladas no computador nem de download em tempo de execucao.
+
+Foram conferidos no painel do Figma os fundos radiais (`#2F1F59`, `#250D63`, `#241250`, `#160C30`), cartoes (`#666666` com 20% de opacidade), folhas (`#12182A`), navegacao (`#1B224E`), adicionar (`#D9A441`) e circulo da marca (`#FF671D`). O botao principal usa as cores do estilo radial `centro`, incluindo `#190D36`.
+
+A marca branca original foi baixada da camada `LOGO-BRANCA.png` e preservada em `frontend/assets/brand/folks-white.png`. `FolksMark` faz o recorte do simbolo no layout, como na navegacao do Figma, sem alterar o arquivo original.
+
+Os gradientes usam os centros, proporcoes elipticas e paradas do CSS copiado pelo painel do Figma: fundo `116.25% 78.95% at 88.91% 39.74%` (paradas 0, 16.28%, 28.82%, 58.85%) e centro `133.71% 6229.23% at 46.68% 57.14%` (0, 51.21%, 67.88%, 90.12%, 100%). O proprio Figma alerta que esse CSS nao preserva uma rotacao interna do gradiente. Ainda precisam de conferencia alguns controles e cores auxiliares de status. A implementacao segue a referencia inspecionada, mas ainda nao foi certificada como identica pixel a pixel.
 
 ## Validacao
 

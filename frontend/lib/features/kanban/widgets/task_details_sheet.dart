@@ -88,13 +88,7 @@ class _TaskDetailsSheetState extends State<TaskDetailsSheet> {
             child: ProjectBadge(task.project),
           ),
           const SizedBox(height: 12),
-          Text(
-            task.title,
-            style: FolksTheme.heading.copyWith(
-              fontSize: 24,
-              fontWeight: FontWeight.normal,
-            ),
-          ),
+          Text(task.title, style: FolksTheme.heading.copyWith(fontSize: 24)),
           const SizedBox(height: 6),
           Text(
             'Vaga · Cliente ${task.company}',
@@ -382,12 +376,12 @@ class _AdvanceStageDialogState extends State<AdvanceStageDialog> {
         onPressed: () => Navigator.pop(context),
         child: const Text('Cancelar'),
       ),
-      FilledButton(
+      PrimaryAction(
+        label: 'Concluir',
         onPressed: () {
           widget.controller.advance(widget.taskId, _stage, _assignee);
           Navigator.pop(context);
         },
-        child: const Text('Concluir'),
       ),
     ],
   );

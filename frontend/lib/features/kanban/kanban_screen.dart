@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../core/theme/folks_theme.dart';
+import '../../core/widgets/folks_mark.dart';
 import 'kanban_controller.dart';
 import 'task.dart';
 import 'widgets/kanban_widgets.dart';
@@ -58,15 +59,15 @@ class _KanbanScreenState extends State<KanbanScreen> {
   Widget _board() => LayoutBuilder(
     builder: (context, constraints) {
       final width = constraints.maxWidth < 700
-          ? math.min(328.0, constraints.maxWidth * .84)
-          : 328.0;
+          ? math.min(290.0, constraints.maxWidth * .84)
+          : 290.0;
       return Scrollbar(
         controller: _horizontalScroll,
         thumbVisibility: true,
         child: SingleChildScrollView(
           controller: _horizontalScroll,
           scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: BoardStatus.values.map((status) {
@@ -92,8 +93,9 @@ class _KanbanScreenState extends State<KanbanScreen> {
                             child: Text(
                               status.label.toUpperCase(),
                               style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                color: FolksColors.muted,
                               ),
                             ),
                           ),
@@ -175,13 +177,20 @@ class _KanbanScreenState extends State<KanbanScreen> {
           builder: (context, _) => Column(
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
+                padding: EdgeInsets.fromLTRB(
+                  16,
+                  MediaQuery.sizeOf(context).height < 500 ? 8 : 24,
+                  16,
+                  0,
+                ),
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: Text('Quadro de Tarefas', style: FolksTheme.heading),
                 ),
               ),
-              const SizedBox(height: 10),
+              SizedBox(
+                height: MediaQuery.sizeOf(context).height < 500 ? 4 : 10,
+              ),
               SizedBox(
                 height: 48,
                 child: ListView.separated(
@@ -203,7 +212,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
                       ),
                       selected: _controller.filter == label,
                       showCheckmark: false,
-                      backgroundColor: FolksColors.card.withValues(alpha: .6),
+                      backgroundColor: FolksColors.card,
                       selectedColor: const Color(0xFF615271),
                       side: BorderSide.none,
                       shape: const StadiumBorder(),
@@ -224,9 +233,14 @@ class _KanbanScreenState extends State<KanbanScreen> {
                     selected: {_controller.listView},
                     showSelectedIcon: false,
                     style: SegmentedButton.styleFrom(
-                      backgroundColor: FolksColors.card.withValues(alpha: .5),
+                      backgroundColor: FolksColors.card,
                       selectedBackgroundColor: const Color(0xFF514265),
                       side: const BorderSide(color: FolksColors.border),
+                      textStyle: const TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -244,11 +258,11 @@ class _KanbanScreenState extends State<KanbanScreen> {
                       child: _controller.listView ? _list() : _board(),
                     ),
                     Positioned(
-                      right: 20,
-                      bottom: 20,
+                      right: 28,
+                      bottom: 15,
                       child: SizedBox(
-                        width: 48,
-                        height: 48,
+                        width: 49,
+                        height: 49,
                         child: FloatingActionButton.small(
                           heroTag: 'new-task',
                           tooltip: 'Nova tarefa',
@@ -256,7 +270,14 @@ class _KanbanScreenState extends State<KanbanScreen> {
                           foregroundColor: FolksColors.white,
                           shape: const CircleBorder(),
                           onPressed: _create,
-                          child: const Icon(Icons.add, size: 30),
+                          child: const Text(
+                            '+',
+                            style: TextStyle(
+                              fontFamily: 'InriaSans',
+                              fontSize: 48,
+                              height: 1,
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -277,10 +298,18 @@ class _KanbanNavigation extends StatelessWidget {
   const _KanbanNavigation();
 
   @override
-  Widget build(BuildContext context) => ColoredBox(
-    color: FolksColors.navigation,
+  Widget build(BuildContext context) => DecoratedBox(
+    decoration: const BoxDecoration(
+      color: FolksColors.navigation,
+      borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
+    ),
     child: SafeArea(
       top: false,
+      minimum: EdgeInsets.only(
+        bottom: MediaQuery.orientationOf(context) == Orientation.portrait
+            ? 24
+            : 0,
+      ),
       child: SizedBox(
         height: 72,
         child: Row(
@@ -289,6 +318,7 @@ class _KanbanNavigation extends StatelessWidget {
             const IconButton(
               tooltip: 'Início (em breve)',
               onPressed: null,
+              disabledColor: FolksColors.white,
               icon: Icon(Icons.home_rounded),
             ),
             Semantics(
@@ -300,34 +330,38 @@ class _KanbanNavigation extends StatelessWidget {
                 size: 26,
               ),
             ),
-            Container(
-              width: 62,
-              height: 62,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                color: FolksColors.orange,
-                boxShadow: [
-                  BoxShadow(
-                    color: Color(0x66000000),
-                    blurRadius: 8,
-                    offset: Offset(0, 3),
+            Transform.translate(
+              offset: const Offset(0, -36),
+              child: Container(
+                width: 62,
+                height: 62,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: FolksColors.brandOrange,
+                  border: Border.fromBorderSide(
+                    BorderSide(color: Color(0xFFF86117)),
                   ),
-                ],
-              ),
-              child: const Icon(
-                Icons.hub_outlined,
-                size: 36,
-                color: FolksColors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Color(0x54FF671D),
+                      blurRadius: 4,
+                      offset: Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: const Center(child: FolksMark()),
               ),
             ),
             const IconButton(
               tooltip: 'Funil de Vagas (em breve)',
               onPressed: null,
+              disabledColor: FolksColors.white,
               icon: Icon(Icons.edit_square),
             ),
             const IconButton(
               tooltip: 'Configurações (em breve)',
               onPressed: null,
+              disabledColor: FolksColors.white,
               icon: Icon(Icons.settings),
             ),
           ],

@@ -1,6 +1,6 @@
 // Captura de revisao visual; nao e um teste golden nem uma comparacao com Figma.
 // flutter test tool/capture_kanban.dart --no-pub
-//   --dart-define=CAPTURE_DIR=<pasta> --dart-define=CAPTURE_FONT_DIR=<fontes locais>
+//   --dart-define=CAPTURE_DIR=<pasta>
 import 'dart:io';
 import 'dart:ui' as ui;
 
@@ -17,26 +17,18 @@ void main() {
     debugDisableShadows = false;
     addTearDown(() => debugDisableShadows = true);
     const output = String.fromEnvironment('CAPTURE_DIR');
-    const fonts = String.fromEnvironment('CAPTURE_FONT_DIR');
     if (output.isEmpty) fail('Defina CAPTURE_DIR para salvar as capturas.');
     final icons = FontLoader('MaterialIcons')
       ..addFont(rootBundle.load('fonts/MaterialIcons-Regular.otf'));
     await icons.load();
-    if (fonts.isNotEmpty) {
-      for (final entry in {
-        'Arial': 'arial.ttf',
-        'Times New Roman': 'times.ttf',
-      }.entries) {
-        final font = File('$fonts/${entry.value}');
-        if (font.existsSync()) {
-          final loader = FontLoader(entry.key)
-            ..addFont(
-              Future.value(ByteData.sublistView(font.readAsBytesSync())),
-            );
-          await loader.load();
-        }
-      }
-    }
+    final inter = FontLoader('Inter')
+      ..addFont(rootBundle.load('assets/fonts/Inter-Variable.ttf'));
+    final sans = FontLoader('InriaSans')
+      ..addFont(rootBundle.load('assets/fonts/InriaSans-Regular.ttf'))
+      ..addFont(rootBundle.load('assets/fonts/InriaSans-Bold.ttf'));
+    final serif = FontLoader('InriaSerif')
+      ..addFont(rootBundle.load('assets/fonts/InriaSerif-Bold.ttf'));
+    await Future.wait([inter.load(), sans.load(), serif.load()]);
     final key = GlobalKey();
     final controller = KanbanController();
     addTearDown(controller.dispose);
@@ -52,6 +44,13 @@ void main() {
           debugShowCheckedModeBanner: false,
           home: KanbanScreen(controller: controller),
         ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.runAsync(
+      () => precacheImage(
+        const AssetImage('assets/brand/folks-white.png'),
+        key.currentContext!,
       ),
     );
     await tester.pumpAndSettle();

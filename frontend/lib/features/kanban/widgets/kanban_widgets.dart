@@ -37,7 +37,14 @@ class ProjectBadge extends StatelessWidget {
         color: color.withValues(alpha: .13),
         borderRadius: BorderRadius.circular(16),
       ),
-      child: Text(project, style: TextStyle(fontSize: 11, color: color)),
+      child: Text(
+        project,
+        style: TextStyle(
+          fontSize: 8,
+          fontWeight: FontWeight.bold,
+          color: project == 'Recrutamento' ? const Color(0xFFAC7103) : color,
+        ),
+      ),
     );
   }
 }
@@ -140,6 +147,11 @@ class TaskCard extends StatelessWidget {
                 ),
                 PopupMenuButton<BoardStatus>(
                   tooltip: 'Mover tarefa',
+                  style: IconButton.styleFrom(
+                    minimumSize: const Size(32, 24),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    padding: EdgeInsets.zero,
+                  ),
                   icon: const Icon(
                     Icons.more_horiz,
                     size: 18,
@@ -159,13 +171,7 @@ class TaskCard extends StatelessWidget {
                 ),
               ],
             ),
-            Text(
-              task.title,
-              style: FolksTheme.heading.copyWith(
-                fontSize: 19,
-                fontWeight: FontWeight.normal,
-              ),
-            ),
+            Text(task.title, style: FolksTheme.heading.copyWith(fontSize: 18)),
             const SizedBox(height: 12),
             Pipeline(task.stage, labels: false),
             const SizedBox(height: 10),
@@ -182,7 +188,7 @@ class TaskCard extends StatelessWidget {
                   child: Text(
                     task.assignee,
                     style: const TextStyle(
-                      fontSize: 11,
+                      fontSize: 10,
                       color: FolksColors.muted,
                     ),
                   ),
@@ -217,7 +223,11 @@ class FieldLabel extends StatelessWidget {
       children: [
         Text(
           label.toUpperCase(),
-          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: FolksColors.muted,
+          ),
         ),
         const SizedBox(height: 8),
         Semantics(label: label, child: child),
@@ -243,7 +253,7 @@ class SheetActions extends StatelessWidget {
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
-      FilledButton(onPressed: onPrimary, child: Text(primaryLabel)),
+      PrimaryAction(label: primaryLabel, onPressed: onPrimary),
       const SizedBox(height: 8),
       FilledButton(
         style: FilledButton.styleFrom(backgroundColor: FolksColors.field),
@@ -251,6 +261,39 @@ class SheetActions extends StatelessWidget {
         child: Text(secondaryLabel),
       ),
     ],
+  );
+}
+
+class PrimaryAction extends StatelessWidget {
+  const PrimaryAction({
+    super.key,
+    required this.label,
+    required this.onPressed,
+  });
+  final String label;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) => DecoratedBox(
+    decoration: BoxDecoration(
+      gradient: onPressed == null ? null : FolksTheme.primaryGradient,
+      borderRadius: BorderRadius.circular(10),
+      boxShadow: const [
+        BoxShadow(
+          color: FolksColors.sheet,
+          blurRadius: 4,
+          offset: Offset(0, 1),
+        ),
+      ],
+    ),
+    child: FilledButton(
+      style: FilledButton.styleFrom(
+        backgroundColor: Colors.transparent,
+        shadowColor: Colors.transparent,
+      ),
+      onPressed: onPressed,
+      child: Text(label),
+    ),
   );
 }
 
