@@ -56,6 +56,9 @@ class _LoginScreenState extends State<LoginScreen> {
       TextInput.finishAutofillContext();
       _password.clear();
       widget.onAuthenticated?.call();
+    } on InvalidCredentials {
+      if (!mounted) return;
+      setState(() => _error = 'E-mail ou senha incorretos.');
     } catch (_) {
       if (!mounted) return;
       setState(() {

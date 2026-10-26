@@ -3,12 +3,19 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'core/theme/folks_theme.dart';
+import 'features/auth/authentication_service.dart';
 import 'features/auth/login_screen.dart';
+import 'features/kanban/kanban_screen.dart';
 import 'features/splash/splash_screen.dart';
 import 'shared/widgets/folks_logo.dart';
 
 class FolksConnectApp extends StatelessWidget {
-  const FolksConnectApp({super.key});
+  const FolksConnectApp({
+    super.key,
+    this.authentication = const DemoAuthenticationService(),
+  });
+
+  final AuthenticationService authentication;
 
   @override
   Widget build(BuildContext context) {
@@ -16,13 +23,15 @@ class FolksConnectApp extends StatelessWidget {
       title: 'Folks Connect',
       debugShowCheckedModeBanner: false,
       theme: FolksTheme.dark,
-      home: const _StartupFlow(),
+      home: _StartupFlow(authentication: authentication),
     );
   }
 }
 
 class _StartupFlow extends StatefulWidget {
-  const _StartupFlow();
+  const _StartupFlow({required this.authentication});
+
+  final AuthenticationService authentication;
 
   @override
   State<_StartupFlow> createState() => _StartupFlowState();
@@ -32,6 +41,7 @@ class _StartupFlowState extends State<_StartupFlow> {
   Timer? _timer;
   bool _loading = true;
   bool _started = false;
+  bool _authenticated = false;
 
   @override
   void didChangeDependencies() {
@@ -57,6 +67,15 @@ class _StartupFlowState extends State<_StartupFlow> {
 
   @override
   Widget build(BuildContext context) {
-    return _loading ? const SplashScreen() : const LoginScreen();
+    if (_loading) return const SplashScreen();
+    if (_authenticated) {
+      return KanbanScreen(
+        onSignOut: () => setState(() => _authenticated = false),
+      );
+    }
+    return LoginScreen(
+      authentication: widget.authentication,
+      onAuthenticated: () => setState(() => _authenticated = true),
+    );
   }
 }
