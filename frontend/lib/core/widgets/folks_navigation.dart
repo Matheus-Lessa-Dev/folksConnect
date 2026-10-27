@@ -79,11 +79,11 @@ class FolksNavigation extends StatelessWidget {
               'Funil de Vagas',
               Icons.edit_square,
             ),
-            const IconButton(
-              tooltip: 'Configurações (em breve)',
-              onPressed: null,
-              disabledColor: FolksColors.white,
-              icon: Icon(Icons.settings),
+            _destination(
+              context,
+              '/configuracoes',
+              'Configurações',
+              Icons.settings,
             ),
           ],
         ),

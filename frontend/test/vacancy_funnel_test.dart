@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frontend/core/theme/folks_theme.dart';
+import 'package:frontend/features/settings/settings_screen.dart';
 import 'package:frontend/features/kanban/task.dart';
 import 'package:frontend/features/vacancy_funnel/vacancy.dart';
 import 'package:frontend/features/vacancy_funnel/vacancy_funnel_controller.dart';
@@ -55,6 +56,7 @@ Future<void> openAuthenticatedWorkspace(WidgetTester tester) async {
   await tester.pumpAndSettle();
   await tester.enterText(find.byType(TextFormField).first, 'joabe@gmail.com');
   await tester.enterText(find.byType(TextFormField).last, '12345');
+  await tester.ensureVisible(find.text('Entrar'));
   await tester.tap(find.text('Entrar'));
   await tester.pumpAndSettle();
 }
@@ -196,7 +198,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('navegação entre abas preserva o estado do Kanban e do funil', (
+  testWidgets('navegação preserva Kanban, funil e configurações na sessão', (
     tester,
   ) async {
     await openAuthenticatedWorkspace(tester);
@@ -226,10 +228,28 @@ void main() {
       find.byType(SegmentedButton<bool>),
     );
     expect(selector.selected, {true});
+    await tester.tap(find.byTooltip('Configurações'));
+    await tester.pumpAndSettle();
+    expect(find.byType(SettingsScreen), findsOneWidget);
+    await tester.enterText(find.byType(TextField).first, 'Perfil de teste');
+    final settings = tester
+        .widget<SettingsScreen>(find.byType(SettingsScreen))
+        .controller;
+    expect(settings.profileName, 'Perfil de teste');
     await tester.tap(find.byTooltip('Funil de Vagas'));
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(find.text('Vaga preservada'), 200);
     expect(find.text('Vaga preservada'), findsOneWidget);
+    await tester.tap(find.byTooltip('Configurações'));
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<TextField>(find.byType(TextField).first).controller!.text,
+      'Perfil de teste',
+    );
+    expect(
+      tester.widget<SettingsScreen>(find.byType(SettingsScreen)).controller,
+      same(settings),
+    );
     expect(tester.takeException(), isNull);
   });
 
