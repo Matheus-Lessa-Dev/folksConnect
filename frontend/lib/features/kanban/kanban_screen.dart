@@ -3,7 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../core/theme/folks_theme.dart';
-import '../../core/widgets/folks_mark.dart';
+import '../../core/widgets/folks_navigation.dart';
 import 'kanban_controller.dart';
 import 'task.dart';
 import 'widgets/kanban_widgets.dart';
@@ -284,87 +284,9 @@ class _KanbanScreenState extends State<KanbanScreen> {
                   ],
                 ),
               ),
-              const _KanbanNavigation(),
+              const FolksNavigation(selectedRoute: '/kanban'),
             ],
           ),
-        ),
-      ),
-    ),
-  );
-}
-
-/// As demais abas ficam indisponiveis ate suas respectivas features existirem.
-class _KanbanNavigation extends StatelessWidget {
-  const _KanbanNavigation();
-
-  @override
-  Widget build(BuildContext context) => DecoratedBox(
-    decoration: const BoxDecoration(
-      color: FolksColors.navigation,
-      borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
-    ),
-    child: SafeArea(
-      top: false,
-      minimum: EdgeInsets.only(
-        bottom: MediaQuery.orientationOf(context) == Orientation.portrait
-            ? 24
-            : 0,
-      ),
-      child: SizedBox(
-        height: 72,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            const IconButton(
-              tooltip: 'Início (em breve)',
-              onPressed: null,
-              disabledColor: FolksColors.white,
-              icon: Icon(Icons.home_rounded),
-            ),
-            Semantics(
-              selected: true,
-              label: 'Kanban',
-              child: const Icon(
-                Icons.assignment,
-                color: FolksColors.orange,
-                size: 26,
-              ),
-            ),
-            Transform.translate(
-              offset: const Offset(0, -36),
-              child: Container(
-                width: 62,
-                height: 62,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: FolksColors.brandOrange,
-                  border: Border.fromBorderSide(
-                    BorderSide(color: Color(0xFFF86117)),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Color(0x54FF671D),
-                      blurRadius: 4,
-                      offset: Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: const Center(child: FolksMark()),
-              ),
-            ),
-            const IconButton(
-              tooltip: 'Funil de Vagas (em breve)',
-              onPressed: null,
-              disabledColor: FolksColors.white,
-              icon: Icon(Icons.edit_square),
-            ),
-            const IconButton(
-              tooltip: 'Configurações (em breve)',
-              onPressed: null,
-              disabledColor: FolksColors.white,
-              icon: Icon(Icons.settings),
-            ),
-          ],
         ),
       ),
     ),
