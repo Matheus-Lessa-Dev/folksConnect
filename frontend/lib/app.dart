@@ -69,8 +69,11 @@ class _StartupFlowState extends State<_StartupFlow> {
   Widget build(BuildContext context) {
     if (_loading) return const SplashScreen();
     if (_authenticated) {
-      return KanbanScreen(
-        onSignOut: () => setState(() => _authenticated = false),
+      return Theme(
+        data: FolksTheme.kanban,
+        child: KanbanScreen(
+          onSignOut: () => setState(() => _authenticated = false),
+        ),
       );
     }
     return LoginScreen(
