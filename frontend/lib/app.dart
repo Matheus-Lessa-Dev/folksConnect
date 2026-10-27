@@ -25,7 +25,7 @@ class FolksConnectApp extends StatelessWidget {
     return MaterialApp(
       title: 'Folks Connect',
       debugShowCheckedModeBanner: false,
-      theme: FolksTheme.auth,
+      theme: FolksTheme.dark,
       home: _StartupFlow(authentication: authentication),
     );
   }
@@ -122,7 +122,7 @@ class _AuthenticatedWorkspaceState extends State<_AuthenticatedWorkspace> {
 
   @override
   Widget build(BuildContext context) => Theme(
-    data: FolksTheme.dark,
+    data: FolksTheme.kanban,
     child: Navigator(
       onGenerateInitialRoutes: (_, _) => [
         _route(const RouteSettings(name: '/kanban')),

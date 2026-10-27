@@ -40,7 +40,7 @@ void main() {
       RepaintBoundary(
         key: key,
         child: MaterialApp(
-          theme: FolksTheme.dark,
+          theme: FolksTheme.kanban,
           debugShowCheckedModeBanner: false,
           home: KanbanScreen(controller: controller),
         ),

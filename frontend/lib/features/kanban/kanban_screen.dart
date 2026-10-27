@@ -59,9 +59,13 @@ class _KanbanScreenState extends State<KanbanScreen> {
 
   Widget _board() => LayoutBuilder(
     builder: (context, constraints) {
-      final width = constraints.maxWidth < 700
+      final baseWidth = constraints.maxWidth < 700
           ? math.min(290.0, constraints.maxWidth * .84)
           : 290.0;
+      // Preserve o espaco dos rotulos quando a fonte de acessibilidade aumenta.
+      final width =
+          baseWidth *
+          math.max(1.0, MediaQuery.textScalerOf(context).scale(15) / 15);
       return Scrollbar(
         controller: _horizontalScroll,
         thumbVisibility: true,
@@ -184,27 +188,24 @@ class _KanbanScreenState extends State<KanbanScreen> {
                   16,
                   0,
                 ),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          'Quadro de Tarefas',
-                          style: FolksTheme.heading,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Quadro de Tarefas',
+                        style: FolksTheme.heading,
+                      ),
+                    ),
+                    if (widget.onSignOut != null)
+                      IconButton(
+                        tooltip: 'Sair',
+                        onPressed: widget.onSignOut,
+                        icon: const Icon(
+                          Icons.logout,
+                          color: FolksColors.white,
                         ),
                       ),
-                      if (widget.onSignOut != null)
-                        IconButton(
-                          tooltip: 'Sair',
-                          onPressed: widget.onSignOut,
-                          icon: const Icon(
-                            Icons.logout,
-                            color: FolksColors.white,
-                          ),
-                        ),
-                    ],
-                  ),
+                  ],
                 ),
               ),
               SizedBox(

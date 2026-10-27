@@ -16,7 +16,7 @@ Referencia: [Folks Mobile no Figma](https://www.figma.com/design/H2ATifgEvdrl05T
 
 ## Integracao
 
-`KanbanScreen` pode receber um `KanbanController`. A tela pode ser acessada pela rota `/kanban`; temporariamente tambem e a tela inicial porque o frontend anterior estava vazio.
+`KanbanScreen` pode receber um `KanbanController` e o callback `onSignOut`. O fluxo de abertura e login existente foi preservado: o quadro completo aparece apos a autenticacao e Sair retorna ao login. O tema `FolksTheme.kanban` fica restrito ao quadro, preservando o tema e as cores das telas de abertura e login.
 
 O backend existente apenas expoe health check e apresentacao da API. Os dados, alteracoes e bytes dos anexos ficam **somente em memoria durante a sessao**; recarregar restaura os dados de demonstracao. Nao ha upload ou gravacao em banco. Empresas, cargos, projetos e responsaveis sao catalogos de demonstracao, a substituir pelos endpoints reais quando implementados.
 

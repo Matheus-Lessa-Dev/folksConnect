@@ -3,14 +3,16 @@ import 'package:flutter/material.dart';
 /// Tokens compartilhados da referencia Folks Mobile (tema escuro).
 abstract final class FolksColors {
   static const authBackground = Color(0xFF3D3D3D);
-  static const background = Color(0xFF160C30);
+  static const background = Color(0xFF3D3D3D);
+  static const boardBackground = Color(0xFF160C30);
   static const purple = Color(0xFF250D63);
   static const card = Color(0x33666666);
   static const sheet = Color(0xFF12182A);
   static const field = card;
   static const navigation = Color(0xFF1B224E);
   static const primary = Color(0xFF250D63);
-  static const orange = Color(0xFFFF6C1E);
+  static const orange = Color(0xFFFF671D);
+  static const boardOrange = Color(0xFFFF6C1E);
   static const brandOrange = Color(0xFFFF671D);
   static const gold = Color(0xFFD9A441);
   static const white = Color(0xFFFFFFFF);
@@ -23,22 +25,6 @@ abstract final class FolksColors {
 }
 
 abstract final class FolksTheme {
-  static final auth = ThemeData(
-    brightness: Brightness.dark,
-    scaffoldBackgroundColor: FolksColors.authBackground,
-    colorScheme: const ColorScheme.dark(
-      primary: FolksColors.orange,
-      onPrimary: FolksColors.white,
-      surface: FolksColors.authBackground,
-      onSurface: FolksColors.white,
-    ),
-    textSelectionTheme: const TextSelectionThemeData(
-      cursorColor: FolksColors.orange,
-      selectionColor: Color(0x66FF671D),
-      selectionHandleColor: FolksColors.orange,
-    ),
-  );
-
   static const background = RadialGradient(
     center: Alignment(.7782, -.2052),
     radius: 1,
@@ -76,11 +62,27 @@ abstract final class FolksTheme {
   static final dark = ThemeData(
     brightness: Brightness.dark,
     scaffoldBackgroundColor: FolksColors.background,
+    colorScheme: const ColorScheme.dark(
+      primary: FolksColors.orange,
+      onPrimary: FolksColors.white,
+      surface: FolksColors.background,
+      onSurface: FolksColors.white,
+    ),
+    textSelectionTheme: const TextSelectionThemeData(
+      cursorColor: FolksColors.orange,
+      selectionColor: Color(0x66FF671D),
+      selectionHandleColor: FolksColors.orange,
+    ),
+  );
+
+  static final kanban = ThemeData(
+    brightness: Brightness.dark,
+    scaffoldBackgroundColor: FolksColors.boardBackground,
     fontFamily: 'Inter',
     colorScheme: const ColorScheme.dark(
       primary: FolksColors.primary,
       onPrimary: FolksColors.white,
-      secondary: FolksColors.orange,
+      secondary: FolksColors.boardOrange,
       onSecondary: FolksColors.white,
       secondaryContainer: FolksColors.card,
       onSecondaryContainer: FolksColors.white,

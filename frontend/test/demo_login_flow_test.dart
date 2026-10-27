@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frontend/app.dart';
 import 'package:frontend/core/theme/folks_theme.dart';
@@ -95,11 +96,19 @@ void main() {
     (tester) async {
       final controller = KanbanController(tasks: []);
       addTearDown(controller.dispose);
-      await tester.binding.setSurfaceSize(const Size(844, 390));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
+      tester.view.physicalSize = const Size(844, 390);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      // Use as mesmas dimensoes no layout e no MediaQuery, com fontes reais.
+      final heading = FontLoader('InriaSerif')
+        ..addFont(rootBundle.load('assets/fonts/InriaSerif-Bold.ttf'));
+      final body = FontLoader('Inter')
+        ..addFont(rootBundle.load('assets/fonts/Inter-Variable.ttf'));
+      await Future.wait([heading.load(), body.load()]);
       await tester.pumpWidget(
         MaterialApp(
-          theme: FolksTheme.dark,
+          theme: FolksTheme.kanban,
           builder: (context, child) => MediaQuery(
             data: MediaQuery.of(
               context,
@@ -112,7 +121,13 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Lista'));
       await tester.pumpAndSettle();
-      expect(find.text('Nenhuma tarefa cadastrada.'), findsOneWidget);
+      expect(
+        tester
+            .widget<SegmentedButton<bool>>(find.byType(SegmentedButton<bool>))
+            .selected,
+        {true},
+      );
+      expect(find.byKey(const ValueKey('open-demo-screening')), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
   );
