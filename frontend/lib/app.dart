@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import 'core/theme/folks_theme.dart';
 import 'features/auth/authentication_service.dart';
@@ -14,7 +15,7 @@ import 'features/vacancy_funnel/vacancy_funnel_screen.dart';
 import 'features/splash/splash_screen.dart';
 import 'shared/widgets/folks_logo.dart';
 
-class FolksConnectApp extends StatelessWidget {
+class FolksConnectApp extends StatefulWidget {
   const FolksConnectApp({
     super.key,
     this.authentication = const DemoAuthenticationService(),
@@ -23,20 +24,102 @@ class FolksConnectApp extends StatelessWidget {
   final AuthenticationService authentication;
 
   @override
+  State<FolksConnectApp> createState() => _FolksConnectAppState();
+}
+
+class _FolksConnectAppState extends State<FolksConnectApp> {
+  static const _workspaceRoutes = {'/kanban', '/funil-vagas', '/configuracoes'};
+  bool _authenticated = false;
+
+  late final _router = GoRouter(
+    redirect: (context, state) {
+      final path = state.uri.path;
+      if (_workspaceRoutes.contains(path) && !_authenticated) {
+        return Uri(
+          path: '/login',
+          queryParameters: {'redirect': path},
+        ).toString();
+      }
+      if (path == '/login' && _authenticated) return '/kanban';
+      if (path != '/' && path != '/login' && !_workspaceRoutes.contains(path)) {
+        return _authenticated ? '/kanban' : '/login';
+      }
+      return null;
+    },
+    routes: [
+      GoRoute(
+        path: '/',
+        builder: (context, state) =>
+            _StartupFlow(onReady: () => context.go('/login')),
+      ),
+      GoRoute(
+        path: '/login',
+        builder: (context, state) => LoginScreen(
+          authentication: widget.authentication,
+          onAuthenticated: () {
+            _authenticated = true;
+            final destination = state.uri.queryParameters['redirect'];
+            context.go(
+              _workspaceRoutes.contains(destination) ? destination! : '/kanban',
+            );
+          },
+        ),
+      ),
+      ShellRoute(
+        builder: (context, state, child) =>
+            _AuthenticatedWorkspace(child: child),
+        routes: [
+          GoRoute(
+            path: '/kanban',
+            builder: (context, state) => KanbanScreen(
+              controller: _WorkspaceScope.of(context)._kanban,
+              onSignOut: _signOut,
+            ),
+          ),
+          GoRoute(
+            path: '/funil-vagas',
+            builder: (context, state) => VacancyFunnelScreen(
+              controller: _WorkspaceScope.of(context)._funnel,
+              onSignOut: _signOut,
+            ),
+          ),
+          GoRoute(
+            path: '/configuracoes',
+            builder: (context, state) => SettingsScreen(
+              controller: _WorkspaceScope.of(context)._settings,
+            ),
+          ),
+        ],
+      ),
+    ],
+  );
+
+  void _signOut() {
+    _authenticated = false;
+    _router.go('/login');
+  }
+
+  @override
+  void dispose() {
+    _router.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       title: 'Folks Connect',
       debugShowCheckedModeBanner: false,
       theme: FolksTheme.dark,
-      home: _StartupFlow(authentication: authentication),
+      routerConfig: _router,
     );
   }
 }
 
 class _StartupFlow extends StatefulWidget {
-  const _StartupFlow({required this.authentication});
+  const _StartupFlow({required this.onReady});
 
-  final AuthenticationService authentication;
+  final VoidCallback onReady;
 
   @override
   State<_StartupFlow> createState() => _StartupFlowState();
@@ -44,9 +127,7 @@ class _StartupFlow extends StatefulWidget {
 
 class _StartupFlowState extends State<_StartupFlow> {
   Timer? _timer;
-  bool _loading = true;
   bool _started = false;
-  bool _authenticated = false;
 
   @override
   void didChangeDependencies() {
@@ -59,7 +140,7 @@ class _StartupFlowState extends State<_StartupFlow> {
     precacheImage(const AssetImage(FolksLogo.asset), context).then((_) {
       if (!mounted) return;
       _timer = Timer(delay, () {
-        if (mounted) setState(() => _loading = false);
+        if (mounted) widget.onReady();
       });
     });
   }
@@ -71,23 +152,12 @@ class _StartupFlowState extends State<_StartupFlow> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    if (_loading) return const SplashScreen();
-    if (_authenticated) {
-      return _AuthenticatedWorkspace(
-        onSignOut: () => setState(() => _authenticated = false),
-      );
-    }
-    return LoginScreen(
-      authentication: widget.authentication,
-      onAuthenticated: () => setState(() => _authenticated = true),
-    );
-  }
+  Widget build(BuildContext context) => const SplashScreen();
 }
 
 class _AuthenticatedWorkspace extends StatefulWidget {
-  const _AuthenticatedWorkspace({required this.onSignOut});
-  final VoidCallback onSignOut;
+  const _AuthenticatedWorkspace({required this.child});
+  final Widget child;
 
   @override
   State<_AuthenticatedWorkspace> createState() =>
@@ -107,32 +177,22 @@ class _AuthenticatedWorkspaceState extends State<_AuthenticatedWorkspace> {
     super.dispose();
   }
 
-  Route<dynamic> _route(RouteSettings settings) => MaterialPageRoute<void>(
-    settings: settings,
-    builder: (context) => switch (settings.name) {
-      '/' || '/kanban' => KanbanScreen(
-        controller: _kanban,
-        onSignOut: widget.onSignOut,
-      ),
-      '/funil-vagas' => VacancyFunnelScreen(
-        controller: _funnel,
-        onSignOut: widget.onSignOut,
-      ),
-      '/configuracoes' => SettingsScreen(controller: _settings),
-      _ => throw UnsupportedError(
-        'Rota autenticada desconhecida: ${settings.name}',
-      ),
-    },
-  );
-
   @override
   Widget build(BuildContext context) => Theme(
     data: FolksTheme.kanban,
-    child: Navigator(
-      onGenerateInitialRoutes: (_, _) => [
-        _route(const RouteSettings(name: '/kanban')),
-      ],
-      onGenerateRoute: _route,
-    ),
+    child: _WorkspaceScope(workspace: this, child: widget.child),
   );
+}
+
+class _WorkspaceScope extends InheritedWidget {
+  const _WorkspaceScope({required this.workspace, required super.child});
+
+  final _AuthenticatedWorkspaceState workspace;
+
+  static _AuthenticatedWorkspaceState of(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<_WorkspaceScope>()!.workspace;
+
+  @override
+  bool updateShouldNotify(_WorkspaceScope oldWidget) =>
+      workspace != oldWidget.workspace;
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../theme/folks_theme.dart';
 import 'folks_mark.dart';
@@ -18,7 +19,7 @@ class FolksNavigation extends StatelessWidget {
       tooltip: label,
       onPressed: () {
         if (selectedRoute != route) {
-          Navigator.of(context).pushReplacementNamed(route);
+          context.go(route);
         }
       },
       color: selectedRoute == route ? FolksColors.orange : FolksColors.white,
