@@ -127,7 +127,7 @@ void main() {
             .selected,
         {true},
       );
-      expect(find.byKey(const ValueKey('open-demo-screening')), findsOneWidget);
+      expect(find.text('Nenhuma tarefa neste projeto.'), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
   );

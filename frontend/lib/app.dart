@@ -7,6 +7,8 @@ import 'features/auth/authentication_service.dart';
 import 'features/auth/login_screen.dart';
 import 'features/kanban/kanban_controller.dart';
 import 'features/kanban/kanban_screen.dart';
+import 'features/settings/settings_controller.dart';
+import 'features/settings/settings_screen.dart';
 import 'features/vacancy_funnel/vacancy_funnel_controller.dart';
 import 'features/vacancy_funnel/vacancy_funnel_screen.dart';
 import 'features/splash/splash_screen.dart';
@@ -95,11 +97,13 @@ class _AuthenticatedWorkspace extends StatefulWidget {
 class _AuthenticatedWorkspaceState extends State<_AuthenticatedWorkspace> {
   final _kanban = KanbanController();
   final _funnel = VacancyFunnelController();
+  final _settings = SettingsController();
 
   @override
   void dispose() {
     _kanban.dispose();
     _funnel.dispose();
+    _settings.dispose();
     super.dispose();
   }
 
@@ -114,6 +118,7 @@ class _AuthenticatedWorkspaceState extends State<_AuthenticatedWorkspace> {
         controller: _funnel,
         onSignOut: widget.onSignOut,
       ),
+      '/configuracoes' => SettingsScreen(controller: _settings),
       _ => throw UnsupportedError(
         'Rota autenticada desconhecida: ${settings.name}',
       ),
