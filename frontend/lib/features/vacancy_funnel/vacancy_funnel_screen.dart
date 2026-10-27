@@ -8,8 +8,9 @@ import 'vacancy_funnel_controller.dart';
 import 'widgets/new_vacancy_sheet.dart';
 
 class VacancyFunnelScreen extends StatefulWidget {
-  const VacancyFunnelScreen({super.key, this.controller});
+  const VacancyFunnelScreen({super.key, this.controller, this.onSignOut});
   final VacancyFunnelController? controller;
+  final VoidCallback? onSignOut;
 
   @override
   State<VacancyFunnelScreen> createState() => _VacancyFunnelScreenState();
@@ -65,6 +66,12 @@ class _VacancyFunnelScreenState extends State<VacancyFunnelScreen> {
                     ),
                     child: const Text('+ Vaga'),
                   ),
+                  if (widget.onSignOut != null)
+                    IconButton(
+                      tooltip: 'Sair',
+                      onPressed: widget.onSignOut,
+                      icon: const Icon(Icons.logout, color: FolksColors.white),
+                    ),
                 ],
               ),
             ),

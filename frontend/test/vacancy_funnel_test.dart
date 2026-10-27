@@ -5,6 +5,8 @@ import 'package:frontend/features/kanban/task.dart';
 import 'package:frontend/features/vacancy_funnel/vacancy.dart';
 import 'package:frontend/features/vacancy_funnel/vacancy_funnel_controller.dart';
 import 'package:frontend/features/vacancy_funnel/vacancy_funnel_screen.dart';
+import 'package:frontend/shared/widgets/folks_logo.dart';
+import 'package:frontend/features/splash/splash_screen.dart';
 import 'package:frontend/main.dart';
 
 Future<void> mount(
@@ -36,6 +38,24 @@ Future<void> mount(
 Future<void> tapVisible(WidgetTester tester, Finder finder) async {
   await tester.ensureVisible(finder);
   await tester.tap(finder);
+  await tester.pumpAndSettle();
+}
+
+Future<void> openAuthenticatedWorkspace(WidgetTester tester) async {
+  await tester.pumpWidget(const FolksConnectApp());
+  await tester.pump();
+  await tester.runAsync(
+    () => precacheImage(
+      const AssetImage(FolksLogo.asset),
+      tester.element(find.byType(SplashScreen)),
+    ),
+  );
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 901));
+  await tester.pumpAndSettle();
+  await tester.enterText(find.byType(TextFormField).first, 'joabe@gmail.com');
+  await tester.enterText(find.byType(TextFormField).last, '12345');
+  await tester.tap(find.text('Entrar'));
   await tester.pumpAndSettle();
 }
 
@@ -179,8 +199,7 @@ void main() {
   testWidgets('navegação entre abas preserva o estado do Kanban e do funil', (
     tester,
   ) async {
-    await tester.pumpWidget(const FolksConnectApp());
-    await tester.pumpAndSettle();
+    await openAuthenticatedWorkspace(tester);
     await tester.tap(find.text('Lista'));
     await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('Funil de Vagas'));

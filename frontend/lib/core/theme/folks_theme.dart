@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 /// Tokens compartilhados da referencia Folks Mobile (tema escuro).
 abstract final class FolksColors {
+  static const authBackground = Color(0xFF3D3D3D);
   static const background = Color(0xFF160C30);
   static const purple = Color(0xFF250D63);
   static const card = Color(0x33666666);
@@ -22,6 +23,22 @@ abstract final class FolksColors {
 }
 
 abstract final class FolksTheme {
+  static final auth = ThemeData(
+    brightness: Brightness.dark,
+    scaffoldBackgroundColor: FolksColors.authBackground,
+    colorScheme: const ColorScheme.dark(
+      primary: FolksColors.orange,
+      onPrimary: FolksColors.white,
+      surface: FolksColors.authBackground,
+      onSurface: FolksColors.white,
+    ),
+    textSelectionTheme: const TextSelectionThemeData(
+      cursorColor: FolksColors.orange,
+      selectionColor: Color(0x66FF671D),
+      selectionHandleColor: FolksColors.orange,
+    ),
+  );
+
   static const background = RadialGradient(
     center: Alignment(.7782, -.2052),
     radius: 1,

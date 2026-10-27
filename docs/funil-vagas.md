@@ -16,13 +16,14 @@ O Figma foi consultado pelo MCP do Playwright:
 
 ## Escopo
 
-- Rota `/funil-vagas`, acessível pelo ícone do funil na navegação inferior.
+- Rota autenticada `/funil-vagas`, acessível pelo ícone do funil na navegação inferior.
 - Cartões com cargo, cliente, tempo desde a abertura, prazo, etapas e indicadores.
 - Cadastro de cargo, cliente, perfil desejado, responsável, período e canais.
 - Novo cliente com empresa, CNPJ, representante, contato e e-mail. A empresa é
   obrigatória; o e-mail, quando informado, deve ter formato válido.
 - Inclusão e seleção de canais, validação de campos obrigatórios e período.
 - Navegação compartilhada com o Kanban, mantendo os controllers durante a sessão.
+- Funil e Kanban acessíveis depois do login; sair encerra os controllers em memória.
 - Conteúdo rolável, safe areas e formulários adaptados para teclado e texto maior.
 
 As cores, fontes e gradientes reutilizam `FolksTheme`. As etapas reutilizam o

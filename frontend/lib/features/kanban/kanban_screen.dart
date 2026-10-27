@@ -11,8 +11,9 @@ import 'widgets/new_task_sheet.dart';
 import 'widgets/task_details_sheet.dart';
 
 class KanbanScreen extends StatefulWidget {
-  const KanbanScreen({super.key, this.controller});
+  const KanbanScreen({super.key, this.controller, this.onSignOut});
   final KanbanController? controller;
+  final VoidCallback? onSignOut;
 
   @override
   State<KanbanScreen> createState() => _KanbanScreenState();
@@ -185,7 +186,25 @@ class _KanbanScreenState extends State<KanbanScreen> {
                 ),
                 child: Align(
                   alignment: Alignment.centerLeft,
-                  child: Text('Quadro de Tarefas', style: FolksTheme.heading),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Quadro de Tarefas',
+                          style: FolksTheme.heading,
+                        ),
+                      ),
+                      if (widget.onSignOut != null)
+                        IconButton(
+                          tooltip: 'Sair',
+                          onPressed: widget.onSignOut,
+                          icon: const Icon(
+                            Icons.logout,
+                            color: FolksColors.white,
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               ),
               SizedBox(
