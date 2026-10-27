@@ -1,22 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_web_plugins/url_strategy.dart';
+
+import 'app.dart';
+
+export 'app.dart' show FolksConnectApp;
 
 void main() {
+  usePathUrlStrategy();
   runApp(const FolksConnectApp());
-}
-
-class FolksConnectApp extends StatelessWidget {
-  const FolksConnectApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Folks Connect',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-      ),
-      home: const Scaffold(
-        body: SizedBox.expand(),
-      ),
-    );
-  }
 }

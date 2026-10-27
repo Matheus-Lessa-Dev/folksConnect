@@ -28,8 +28,12 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
+  file_selector: ^1.1.0
   flutter:
     sdk: flutter
+  flutter_web_plugins:
+    sdk: flutter
+  go_router: ^18.1.1
 
 dev_dependencies:
   flutter_test:
@@ -52,6 +56,23 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+  assets:
+    - assets/brand/folks-white.png
+    - assets/branding/folks-white.png
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-Variable.ttf
+    - family: InriaSans
+      fonts:
+        - asset: assets/fonts/InriaSans-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/InriaSans-Bold.ttf
+          weight: 700
+    - family: InriaSerif
+      fonts:
+        - asset: assets/fonts/InriaSerif-Bold.ttf
+          weight: 700
 
   # To add assets to your application, add an assets section, like this:
   # assets:
