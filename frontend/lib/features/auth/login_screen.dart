@@ -98,10 +98,11 @@ class _LoginScreenState extends State<LoginScreen> {
       value: const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.light,
-        systemNavigationBarColor: FolksColors.background,
+        systemNavigationBarColor: FolksColors.authBackground,
         systemNavigationBarIconBrightness: Brightness.light,
       ),
       child: Scaffold(
+        backgroundColor: FolksColors.authBackground,
         body: SafeArea(
           child: LayoutBuilder(
             builder: (context, constraints) {

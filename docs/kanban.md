@@ -20,7 +20,7 @@ Referencia: [Folks Mobile no Figma](https://www.figma.com/design/H2ATifgEvdrl05T
 
 O backend existente apenas expoe health check e apresentacao da API. Os dados, alteracoes e bytes dos anexos ficam **somente em memoria durante a sessao**; recarregar restaura os dados de demonstracao. Nao ha upload ou gravacao em banco. Empresas, cargos, projetos e responsaveis sao catalogos de demonstracao, a substituir pelos endpoints reais quando implementados.
 
-As demais abas ficam desabilitadas ate suas respectivas features existirem. Importacao de planilha nao foi implementada: o Figma nao apresenta seu fluxo.
+A aba Funil de Vagas foi habilitada pela feature `feature/funil-vagas`; Inicio e Configuracoes continuam desabilitadas. Importacao de planilha nao foi implementada: o Figma nao apresenta seu fluxo.
 
 ## Referencia visual
 

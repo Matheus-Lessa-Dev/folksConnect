@@ -5,6 +5,7 @@ import 'package:frontend/app.dart';
 import 'package:frontend/core/theme/folks_theme.dart';
 import 'package:frontend/features/auth/authentication_service.dart';
 import 'package:frontend/features/auth/login_screen.dart';
+import 'package:frontend/features/kanban/kanban_controller.dart';
 import 'package:frontend/features/kanban/kanban_screen.dart';
 import 'package:frontend/features/splash/splash_screen.dart';
 import 'package:frontend/shared/widgets/folks_logo.dart';
@@ -93,6 +94,8 @@ void main() {
   testWidgets(
     'Kanban alterna entre quadro e lista e suporta paisagem com texto ampliado',
     (tester) async {
+      final controller = KanbanController(tasks: []);
+      addTearDown(controller.dispose);
       tester.view.physicalSize = const Size(844, 390);
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetPhysicalSize);
@@ -112,7 +115,7 @@ void main() {
             ).copyWith(textScaler: const TextScaler.linear(2)),
             child: child!,
           ),
-          home: KanbanScreen(onSignOut: () {}),
+          home: KanbanScreen(controller: controller, onSignOut: () {}),
         ),
       );
       await tester.pumpAndSettle();

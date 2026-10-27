@@ -5,7 +5,10 @@ import 'package:flutter/material.dart';
 import 'core/theme/folks_theme.dart';
 import 'features/auth/authentication_service.dart';
 import 'features/auth/login_screen.dart';
+import 'features/kanban/kanban_controller.dart';
 import 'features/kanban/kanban_screen.dart';
+import 'features/vacancy_funnel/vacancy_funnel_controller.dart';
+import 'features/vacancy_funnel/vacancy_funnel_screen.dart';
 import 'features/splash/splash_screen.dart';
 import 'shared/widgets/folks_logo.dart';
 
@@ -69,11 +72,8 @@ class _StartupFlowState extends State<_StartupFlow> {
   Widget build(BuildContext context) {
     if (_loading) return const SplashScreen();
     if (_authenticated) {
-      return Theme(
-        data: FolksTheme.kanban,
-        child: KanbanScreen(
-          onSignOut: () => setState(() => _authenticated = false),
-        ),
+      return _AuthenticatedWorkspace(
+        onSignOut: () => setState(() => _authenticated = false),
       );
     }
     return LoginScreen(
@@ -81,4 +81,53 @@ class _StartupFlowState extends State<_StartupFlow> {
       onAuthenticated: () => setState(() => _authenticated = true),
     );
   }
+}
+
+class _AuthenticatedWorkspace extends StatefulWidget {
+  const _AuthenticatedWorkspace({required this.onSignOut});
+  final VoidCallback onSignOut;
+
+  @override
+  State<_AuthenticatedWorkspace> createState() =>
+      _AuthenticatedWorkspaceState();
+}
+
+class _AuthenticatedWorkspaceState extends State<_AuthenticatedWorkspace> {
+  final _kanban = KanbanController();
+  final _funnel = VacancyFunnelController();
+
+  @override
+  void dispose() {
+    _kanban.dispose();
+    _funnel.dispose();
+    super.dispose();
+  }
+
+  Route<dynamic> _route(RouteSettings settings) => MaterialPageRoute<void>(
+    settings: settings,
+    builder: (context) => switch (settings.name) {
+      '/' || '/kanban' => KanbanScreen(
+        controller: _kanban,
+        onSignOut: widget.onSignOut,
+      ),
+      '/funil-vagas' => VacancyFunnelScreen(
+        controller: _funnel,
+        onSignOut: widget.onSignOut,
+      ),
+      _ => throw UnsupportedError(
+        'Rota autenticada desconhecida: ${settings.name}',
+      ),
+    },
+  );
+
+  @override
+  Widget build(BuildContext context) => Theme(
+    data: FolksTheme.kanban,
+    child: Navigator(
+      onGenerateInitialRoutes: (_, _) => [
+        _route(const RouteSettings(name: '/kanban')),
+      ],
+      onGenerateRoute: _route,
+    ),
+  );
 }

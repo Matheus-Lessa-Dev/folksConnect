@@ -13,10 +13,11 @@ class SplashScreen extends StatelessWidget {
       value: SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.light,
-        systemNavigationBarColor: FolksColors.background,
+        systemNavigationBarColor: FolksColors.authBackground,
         systemNavigationBarIconBrightness: Brightness.light,
       ),
       child: Scaffold(
+        backgroundColor: FolksColors.authBackground,
         body: SafeArea(child: Center(child: FolksLogo())),
       ),
     );
