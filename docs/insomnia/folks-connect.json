@@ -1,0 +1,1135 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-11-03T00:00:00.000Z",
+  "__export_source": "folks-connect-backend",
+  "resources": [
+    {
+      "_id": "wrk_folksconnect",
+      "_type": "workspace",
+      "parentId": null,
+      "name": "Folks Connect API",
+      "scope": "collection",
+      "description": "35 endpoints. Inicie pelo Login e copie o token para o ambiente. Consulte docs/backend.md. IDs devem vir das respostas reais."
+    },
+    {
+      "_id": "env_folksconnect",
+      "_type": "environment",
+      "parentId": "wrk_folksconnect",
+      "name": "Ambiente local",
+      "data": {
+        "base_url": "http://localhost:8081/api",
+        "email": "admin@folks.local",
+        "senha": "FolksDev!2026",
+        "token": "",
+        "cargoId": 2,
+        "projetoId": 1,
+        "prioridadeId": 2,
+        "responsavelId": 1,
+        "clienteId": 1,
+        "canalId": 1,
+        "usuarioId": 2,
+        "tarefaId": 1,
+        "statusId": 2,
+        "etapaId": 2,
+        "itemId": 1,
+        "anexoId": 1,
+        "tokenRecuperacao": "",
+        "configuracoes": "COPIE AQUI O JSON COMPLETO DE GET /configuracoes ANTES DE USAR PUT"
+      },
+      "dataPropertyOrder": null,
+      "isPrivate": false,
+      "color": null
+    },
+    {
+      "_id": "jar_folksconnect",
+      "_type": "cookie_jar",
+      "parentId": "wrk_folksconnect",
+      "name": "Default Jar",
+      "cookies": []
+    },
+    {
+      "_id": "fld_folks_01",
+      "_type": "request_group",
+      "parentId": "wrk_folksconnect",
+      "name": "01 Serviço",
+      "description": "",
+      "environment": {},
+      "metaSortKey": 3
+    },
+    {
+      "_id": "req_folks_1",
+      "_type": "request",
+      "parentId": "fld_folks_01",
+      "name": "Identificação",
+      "method": "GET",
+      "url": "{{ _.base_url }}",
+      "description": "",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": 1,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_folks_2",
+      "_type": "request",
+      "parentId": "fld_folks_01",
+      "name": "Health com PostgreSQL",
+      "method": "GET",
+      "url": "{{ _.base_url }}/health",
+      "description": "",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": 2,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "fld_folks_02",
+      "_type": "request_group",
+      "parentId": "wrk_folksconnect",
+      "name": "02 Autenticação",
+      "description": "",
+      "environment": {},
+      "metaSortKey": 6
+    },
+    {
+      "_id": "req_folks_3",
+      "_type": "request",
+      "parentId": "fld_folks_02",
+      "name": "Login",
+      "method": "POST",
+      "url": "{{ _.base_url }}/auth/login",
+      "description": "Copie token da resposta para a variável token do ambiente. Sessão dura 12 horas.",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"{{ _.email }}\",\n  \"senha\": \"{{ _.senha }}\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 3,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_folks_4",
+      "_type": "request",
+      "parentId": "fld_folks_02",
+      "name": "Logout",
+      "method": "POST",
+      "url": "{{ _.base_url }}/auth/logout",
+      "description": "",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 4,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_folks_5",
+      "_type": "request",
+      "parentId": "fld_folks_02",
+      "name": "Solicitar recuperação",
+      "method": "POST",
+      "url": "{{ _.base_url }}/auth/recuperar-senha",
+      "description": "Exige SMTP configurado. Token é enviado por e-mail e não é retornado pela API.",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"{{ _.email }}\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 5,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_folks_6",
+      "_type": "request",
+      "parentId": "fld_folks_02",
+      "name": "Redefinir senha",
+      "method": "POST",
+      "url": "{{ _.base_url }}/auth/redefinir-senha",
+      "description": "Use o token recebido por e-mail. Todas as sessões serão revogadas. Atualize senha no ambiente após redefinir.",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"token\": \"{{ _.tokenRecuperacao }}\",\n  \"senha\": \"NovaSenhaSegura!2026\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 6,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "fld_folks_03",
+      "_type": "request_group",
+      "parentId": "wrk_folksconnect",
+      "name": "03 Perfil e usuários",
+      "description": "",
+      "environment": {},
+      "metaSortKey": 11
+    },
+    {
+      "_id": "req_folks_7",
+      "_type": "request",
+      "parentId": "fld_folks_03",
+      "name": "Meu perfil",
+      "method": "GET",
+      "url": "{{ _.base_url }}/usuarios/me",
+      "description": "",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 7,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_folks_8",
+      "_type": "request",
+      "parentId": "fld_folks_03",
+      "name": "Atualizar meu perfil",
+      "method": "PATCH",
+      "url": "{{ _.base_url }}/usuarios/me",
+      "description": "",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"nome\": \"Meu nome\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 8,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_folks_9",
+      "_type": "request",
+      "parentId": "fld_folks_03",
+      "name": "Listar usuários",
+      "method": "GET",
+      "url": "{{ _.base_url }}/usuarios?page=1&limit=100",
+      "description": "",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 9,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_folks_10",
+      "_type": "request",
+      "parentId": "fld_folks_03",
+      "name": "Cadastrar usuário",
+      "method": "POST",
+      "url": "{{ _.base_url }}/usuarios",
+      "description": "Consulte permissões e escolha IDs a conceder. Operador comum só pode conceder permissões que possui.",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"nome\": \"Analista\",\n  \"email\": \"analista@example.com\",\n  \"senha\": \"SenhaInicial!2026\",\n  \"cargoId\": {{ _.cargoId }},\n  \"projetoId\": {{ _.projetoId }},\n  \"permissoes\": []\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 10,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_folks_11",
+      "_type": "request",
+      "parentId": "fld_folks_03",
+      "name": "Alterar cargo",
+      "method": "PATCH",
+      "url": "{{ _.base_url }}/usuarios/{{ _.usuarioId }}",
+      "description": "",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\"cargoId\": {{ _.cargoId }}}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 11,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_folks_12",
+      "_type": "request",
+      "parentId": "fld_folks_03",
+      "name": "Desativar usuário",
+      "method": "DELETE",
+      "url": "{{ _.base_url }}/usuarios/{{ _.usuarioId }}",
+      "description": "Revoga sessões e mantém vínculos. Não permite desativar a si mesmo ou o administrador de bootstrap.",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 12,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "fld_folks_04",
+      "_type": "request_group",
+      "parentId": "wrk_folksconnect",
+      "name": "04 Catálogos",
+      "description": "",
+      "environment": {},
+      "metaSortKey": 18
+    },
+    {
+      "_id": "req_folks_13",
+      "_type": "request",
+      "parentId": "fld_folks_04",
+      "name": "Listar cargos",
+      "method": "GET",
+      "url": "{{ _.base_url }}/cargos?page=1&limit=100",
+      "description": "",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 13,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_folks_14",
+      "_type": "request",
+      "parentId": "fld_folks_04",
+      "name": "Listar permissoes",
+      "method": "GET",
+      "url": "{{ _.base_url }}/permissoes?page=1&limit=100",
+      "description": "",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 14,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_folks_15",
+      "_type": "request",
+      "parentId": "fld_folks_04",
+      "name": "Listar projetos",
+      "method": "GET",
+      "url": "{{ _.base_url }}/projetos?page=1&limit=100",
+      "description": "",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 15,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_folks_16",
+      "_type": "request",
+      "parentId": "fld_folks_04",
+      "name": "Listar prioridades",
+      "method": "GET",
+      "url": "{{ _.base_url }}/prioridades?page=1&limit=100",
+      "description": "",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 16,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_folks_17",
+      "_type": "request",
+      "parentId": "fld_folks_04",
+      "name": "Listar clientes",
+      "method": "GET",
+      "url": "{{ _.base_url }}/clientes?page=1&limit=100",
+      "description": "",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 17,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_folks_18",
+      "_type": "request",
+      "parentId": "fld_folks_04",
+      "name": "Listar divulgacoes",
+      "method": "GET",
+      "url": "{{ _.base_url }}/divulgacoes?page=1&limit=100",
+      "description": "",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 18,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_folks_19",
+      "_type": "request",
+      "parentId": "fld_folks_04",
+      "name": "Cadastrar cliente",
+      "method": "POST",
+      "url": "{{ _.base_url }}/clientes",
+      "description": "Somente empresa é obrigatória. Salve id como clienteId no ambiente. CNPJ, representante, contato e email são opcionais.",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"empresa\": \"Nome da empresa\",\n  \"representante\": \"Contato responsável\",\n  \"email\": \"contato@example.com\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 19,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_folks_20",
+      "_type": "request",
+      "parentId": "fld_folks_04",
+      "name": "Cadastrar canal",
+      "method": "POST",
+      "url": "{{ _.base_url }}/divulgacoes",
+      "description": "Salve id como canalId no ambiente.",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"nome\": \"LinkedIn\",\n  \"chave\": \"linkedin\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 20,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "fld_folks_05",
+      "_type": "request_group",
+      "parentId": "wrk_folksconnect",
+      "name": "05 Configurações",
+      "description": "",
+      "environment": {},
+      "metaSortKey": 27
+    },
+    {
+      "_id": "req_folks_21",
+      "_type": "request",
+      "parentId": "fld_folks_05",
+      "name": "Consultar configurações",
+      "method": "GET",
+      "url": "{{ _.base_url }}/configuracoes",
+      "description": "Copie o objeto JSON completo para a variável configuracoes antes de usar PUT.",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 21,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_folks_22",
+      "_type": "request",
+      "parentId": "fld_folks_05",
+      "name": "Salvar as três seções",
+      "method": "PUT",
+      "url": "{{ _.base_url }}/configuracoes",
+      "description": "Edite o JSON integral do GET. Preserve IDs existentes; novos itens sem id. Itens omitidos serão removidos. Etapas em uso são protegidas.",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{{ _.configuracoes }}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 22,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "fld_folks_06",
+      "_type": "request_group",
+      "parentId": "wrk_folksconnect",
+      "name": "06 Tarefas",
+      "description": "",
+      "environment": {},
+      "metaSortKey": 30
+    },
+    {
+      "_id": "req_folks_23",
+      "_type": "request",
+      "parentId": "fld_folks_06",
+      "name": "Listar tarefas",
+      "method": "GET",
+      "url": "{{ _.base_url }}/tarefas?page=1&limit=20&projetoId={{ _.projetoId }}",
+      "description": "Filtros: projetoId, clienteId, statusId, etapaId, responsavelId, prioridadeId, busca, prazoInicial, prazoFinal.",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 23,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_folks_24",
+      "_type": "request",
+      "parentId": "fld_folks_06",
+      "name": "Criar tarefa",
+      "method": "POST",
+      "url": "{{ _.base_url }}/tarefas",
+      "description": "Salve id como tarefaId. Status/etapa iniciais e checklist vêm das configurações atuais.",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"titulo\": \"Recrutamento para desenvolvimento\",\n  \"descricao\": \"Validar os requisitos com o cliente\",\n  \"cargo\": \"Desenvolvedor Sênior\",\n  \"projetoId\": {{ _.projetoId }},\n  \"clienteId\": {{ _.clienteId }},\n  \"responsavelId\": {{ _.responsavelId }},\n  \"prioridadeId\": {{ _.prioridadeId }},\n  \"prazoInicial\": \"2026-11-03\",\n  \"prazoFinal\": \"2026-11-30\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 24,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_folks_25",
+      "_type": "request",
+      "parentId": "fld_folks_06",
+      "name": "Detalhes, checklist e anexos",
+      "method": "GET",
+      "url": "{{ _.base_url }}/tarefas/{{ _.tarefaId }}",
+      "description": "",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 25,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_folks_26",
+      "_type": "request",
+      "parentId": "fld_folks_06",
+      "name": "Editar tarefa",
+      "method": "PATCH",
+      "url": "{{ _.base_url }}/tarefas/{{ _.tarefaId }}",
+      "description": "",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\"responsavelId\": {{ _.responsavelId }}, \"prioridadeId\": {{ _.prioridadeId }}, \"descricao\": \"Descrição atualizada\"}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 26,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_folks_27",
+      "_type": "request",
+      "parentId": "fld_folks_06",
+      "name": "Mover no Kanban",
+      "method": "PATCH",
+      "url": "{{ _.base_url }}/tarefas/{{ _.tarefaId }}/status",
+      "description": "",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\"statusId\": {{ _.statusId }}}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 27,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_folks_28",
+      "_type": "request",
+      "parentId": "fld_folks_06",
+      "name": "Avançar recrutamento",
+      "method": "POST",
+      "url": "{{ _.base_url }}/tarefas/{{ _.tarefaId }}/avancos",
+      "description": "etapaId deve ser posterior à atual segundo a ordem configurada.",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\"etapaId\": {{ _.etapaId }}, \"responsavelId\": {{ _.responsavelId }}}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 28,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_folks_29",
+      "_type": "request",
+      "parentId": "fld_folks_06",
+      "name": "Adicionar item de checklist",
+      "method": "POST",
+      "url": "{{ _.base_url }}/tarefas/{{ _.tarefaId }}/checklist/itens",
+      "description": "Salve id como itemId no ambiente.",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"nome\": \"Conferir documentos\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 29,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_folks_30",
+      "_type": "request",
+      "parentId": "fld_folks_06",
+      "name": "Marcar ou desmarcar item",
+      "method": "PATCH",
+      "url": "{{ _.base_url }}/tarefas/{{ _.tarefaId }}/checklist/itens/{{ _.itemId }}",
+      "description": "",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"concluido\": true\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 30,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "fld_folks_07",
+      "_type": "request_group",
+      "parentId": "wrk_folksconnect",
+      "name": "07 Anexos",
+      "description": "",
+      "environment": {},
+      "metaSortKey": 39
+    },
+    {
+      "_id": "req_folks_31",
+      "_type": "request",
+      "parentId": "fld_folks_07",
+      "name": "Enviar arquivos",
+      "method": "POST",
+      "url": "{{ _.base_url }}/tarefas/{{ _.tarefaId }}/anexos",
+      "description": "Selecione arquivo no campo arquivo. Para vários, use campos arquivos (máximo 10). Cada arquivo até 10 MiB. Salve items[0].id como anexoId.",
+      "body": {
+        "mimeType": "multipart/form-data",
+        "params": [
+          {
+            "id": "pair_arquivo",
+            "name": "arquivo",
+            "type": "file",
+            "fileName": "",
+            "disabled": false
+          }
+        ]
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 31,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_folks_32",
+      "_type": "request",
+      "parentId": "fld_folks_07",
+      "name": "Baixar anexo",
+      "method": "GET",
+      "url": "{{ _.base_url }}/tarefas/{{ _.tarefaId }}/anexos/{{ _.anexoId }}",
+      "description": "",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 32,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_folks_33",
+      "_type": "request",
+      "parentId": "fld_folks_07",
+      "name": "Remover anexo",
+      "method": "DELETE",
+      "url": "{{ _.base_url }}/tarefas/{{ _.tarefaId }}/anexos/{{ _.anexoId }}",
+      "description": "",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 33,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "fld_folks_08",
+      "_type": "request_group",
+      "parentId": "wrk_folksconnect",
+      "name": "08 Vagas",
+      "description": "",
+      "environment": {},
+      "metaSortKey": 43
+    },
+    {
+      "_id": "req_folks_34",
+      "_type": "request",
+      "parentId": "fld_folks_08",
+      "name": "Listar vagas",
+      "method": "GET",
+      "url": "{{ _.base_url }}/vagas?page=1&limit=20",
+      "description": "Filtros: clienteId, responsavelId, etapaId, canalId e busca. Indicadores sem fonte definida são nulos.",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 34,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_folks_35",
+      "_type": "request",
+      "parentId": "fld_folks_08",
+      "name": "Criar vaga",
+      "method": "POST",
+      "url": "{{ _.base_url }}/vagas",
+      "description": "",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"cargo\": \"Desenvolvedor Sênior\",\n  \"perfilDesejado\": \"Experiência com Dart e PostgreSQL\",\n  \"clienteId\": {{ _.clienteId }},\n  \"responsavelId\": {{ _.responsavelId }},\n  \"prazoInicial\": \"2026-11-03\",\n  \"prazoFinal\": \"2026-11-30\",\n  \"canais\": [{{ _.canalId }}]\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 35,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    }
+  ]
+}

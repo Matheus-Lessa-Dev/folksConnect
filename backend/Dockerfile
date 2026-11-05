@@ -12,6 +12,7 @@ FROM dart:stable
 
 WORKDIR /app
 COPY --from=build /app/bin/server /app/bin/server
+COPY --from=build /app/database/migrations /app/database/migrations
 
 EXPOSE 8080
 CMD ["/app/bin/server"]
