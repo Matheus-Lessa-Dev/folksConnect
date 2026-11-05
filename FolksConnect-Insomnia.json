@@ -1,0 +1,2278 @@
+{
+  "info": {
+    "name": "Folks Connect - Testes da API",
+    "description": "Importe o JSON no Insomnia e ajuste admin_email/admin_password nas variáveis da coleção. Use um banco local de teste. No Runner, selecione só 01 e 02, mantendo a ordem. O fluxo cria clientes, canais, usuários, tarefas e vagas de teste. Alguns registros ficam no banco. A configuração deve ter ao menos dois cargos e duas etapas de Kanban e funil. Evite rodar o PUT de configurações em paralelo com edições de outros usuários.\nA pasta 03 é manual e exige SMTP. Configure recovery_email com um endereço descartável, execute até o envio, copie o token recebido no e-mail para reset_token e continue. Se o SMTP estiver configurado, use recovery_status=202 para a pasta 02. O endereço fictício da pasta 02 deve estar sem cadastro. Se mudar a porta do Docker, ajuste base_url.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8081",
+      "type": "string"
+    },
+    {
+      "key": "admin_email",
+      "value": "admin@folks.local",
+      "type": "string"
+    },
+    {
+      "key": "admin_password",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_password",
+      "value": "InsomniaLocal!2026",
+      "type": "string"
+    },
+    {
+      "key": "new_user_password",
+      "value": "InsomniaNova!2026",
+      "type": "string"
+    },
+    {
+      "key": "recovery_status",
+      "value": "503",
+      "type": "string"
+    },
+    {
+      "key": "reset_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "cors_origin",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "run_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "me_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "original_name",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "role_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "second_role_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "project_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "priority_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "client_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "channel_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "restricted_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "config_json",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "status_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "stage_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "task_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "item_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "attachment_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "vacancy_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "recovery_email",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "recovery_user_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 - Fluxo principal",
+      "item": [
+        {
+          "name": "API",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = 200;",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));",
+                  "if (pm.response.code === status) { pm.test('Validar resposta', () => { const j = pm.response.json(); pm.expect(j.message).to.eql('Folks Connect API');  }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Health e banco",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/health",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "health"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = 200;",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));",
+                  "if (pm.response.code === status) { pm.test('Validar resposta', () => { const j = pm.response.json(); pm.expect(j.status).to.eql('ok');  }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CORS preflight",
+          "request": {
+            "method": "OPTIONS",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{cors_origin}}"
+              },
+              {
+                "key": "Access-Control-Request-Method",
+                "value": "POST"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/tarefas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "tarefas"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = 204;",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));",
+                  "if (pm.response.code === status) { pm.test('Validar resposta', () => { pm.expect(pm.response.headers.get('access-control-allow-methods')).to.include('POST'); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{admin_email}}\",\n  \"senha\": \"{{admin_password}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('run_id', String(Date.now())); pm.collectionVariables.unset('token'); pm.collectionVariables.unset('restricted_token');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = 200;",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));",
+                  "if (pm.response.code === status) { pm.test('Validar resposta', () => { const j = pm.response.json(); pm.expect(j.token).not.to.be.undefined; pm.collectionVariables.set('token', j.token);  }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Meu perfil",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/usuarios/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "me"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = 200;",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));",
+                  "if (pm.response.code === status) { pm.test('Validar resposta', () => { const j = pm.response.json(); pm.expect(j.id).not.to.be.undefined; pm.collectionVariables.set('me_id', j.id); pm.expect(JSON.stringify(j.nome)).not.to.be.undefined; pm.collectionVariables.set('original_name', JSON.stringify(j.nome));  }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Salvar o nome atual do perfil",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/usuarios/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "me"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": {{original_name}}\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = 200;",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));",
+                  "if (pm.response.code === status) { pm.test('Validar resposta', () => { const j = pm.response.json(); pm.expect(j.nome).to.eql(JSON.parse(pm.collectionVariables.get('original_name')));  }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar cargos",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/cargos?page=1&limit=20",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "cargos"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = 200;",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));",
+                  "if (pm.response.code === status) { pm.test('Validar resposta', () => { const j = pm.response.json(); pm.expect(j.items).to.be.an('array'); pm.expect(j.total).to.be.a('number'); pm.expect(j.items[0].id).not.to.be.undefined; pm.collectionVariables.set('role_id', j.items[0].id); pm.expect(j.items[1].id).not.to.be.undefined; pm.collectionVariables.set('second_role_id', j.items[1].id);  }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar permissoes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/permissoes?page=1&limit=20",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "permissoes"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = 200;",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));",
+                  "if (pm.response.code === status) { pm.test('Validar resposta', () => { const j = pm.response.json(); pm.expect(j.items).to.be.an('array'); pm.expect(j.total).to.be.a('number');  }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar projetos",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/projetos?page=1&limit=20",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "projetos"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = 200;",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));",
+                  "if (pm.response.code === status) { pm.test('Validar resposta', () => { const j = pm.response.json(); pm.expect(j.items).to.be.an('array'); pm.expect(j.total).to.be.a('number'); pm.expect(j.items[0].id).not.to.be.undefined; pm.collectionVariables.set('project_id', j.items[0].id);  }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar prioridades",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/prioridades?page=1&limit=20",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "prioridades"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = 200;",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));",
+                  "if (pm.response.code === status) { pm.test('Validar resposta', () => { const j = pm.response.json(); pm.expect(j.items).to.be.an('array'); pm.expect(j.total).to.be.a('number'); pm.expect(j.items[0].id).not.to.be.undefined; pm.collectionVariables.set('priority_id', j.items[0].id);  }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar clientes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/clientes?page=1&limit=20",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "clientes"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = 200;",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));",
+                  "if (pm.response.code === status) { pm.test('Validar resposta', () => { const j = pm.response.json(); pm.expect(j.items).to.be.an('array'); pm.expect(j.total).to.be.a('number');  }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar divulgacoes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/divulgacoes?page=1&limit=20",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "divulgacoes"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = 200;",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));",
+                  "if (pm.response.code === status) { pm.test('Validar resposta', () => { const j = pm.response.json(); pm.expect(j.items).to.be.an('array'); pm.expect(j.total).to.be.a('number');  }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Criar cliente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/clientes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "clientes"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"empresa\": \"Cliente Insomnia {{run_id}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = 201;",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));",
+                  "if (pm.response.code === status) { pm.test('Validar resposta', () => { const j = pm.response.json(); pm.expect(j.id).not.to.be.undefined; pm.collectionVariables.set('client_id', j.id);  }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Criar canal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/divulgacoes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "divulgacoes"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Canal Insomnia {{run_id}}\",\n  \"chave\": \"insomnia-{{run_id}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = 201;",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));",
+                  "if (pm.response.code === status) { pm.test('Validar resposta', () => { const j = pm.response.json(); pm.expect(j.id).not.to.be.undefined; pm.collectionVariables.set('channel_id', j.id);  }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Canal duplicado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/divulgacoes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "divulgacoes"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Canal Insomnia {{run_id}}\",\n  \"chave\": \"insomnia-{{run_id}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = 409;",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));",
+                  "if (pm.response.code === status) { pm.test('Validar resposta', () => { const j = pm.response.json(); pm.expect(j.erro.codigo).to.be.a('string');  }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar usuários",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/usuarios?page=1&limit=20",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "usuarios"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = 200;",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));",
+                  "if (pm.response.code === status) { pm.test('Validar resposta', () => { const j = pm.response.json(); pm.expect(j.items).to.be.an('array'); pm.expect(j.total).to.be.a('number');  }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Criar usuário de teste",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/usuarios",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "usuarios"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"insomnia-{{run_id}}@example.test\",\n  \"senha\": \"{{user_password}}\",\n  \"nome\": \"Usuário Insomnia\",\n  \"cargoId\": {{role_id}},\n  \"permissoes\": []\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = 201;",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));",
+                  "if (pm.response.code === status) { pm.test('Validar resposta', () => { const j = pm.response.json(); pm.expect(j.id).not.to.be.undefined; pm.collectionVariables.set('user_id', j.id);  }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Trocar cargo do usuário de teste",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/usuarios/{{user_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "{{user_id}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cargoId\": {{second_role_id}}\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = 200;",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));",
+                  "if (pm.response.code === status) { pm.test('Validar resposta', () => { const j = pm.response.json(); pm.expect(j.cargoId).to.eql(Number(pm.collectionVariables.get('second_role_id')));  }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login usuário sem permissões",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"insomnia-{{run_id}}@example.test\",\n  \"senha\": \"{{user_password}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = 200;",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));",
+                  "if (pm.response.code === status) { pm.test('Validar resposta', () => { const j = pm.response.json(); pm.expect(j.token).not.to.be.undefined; pm.collectionVariables.set('restricted_token', j.token);  }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Usuário sem permissão não cria cliente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{restricted_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/clientes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "clientes"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"empresa\": \"Negado\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = 403;",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));",
+                  "if (pm.response.code === status) { pm.test('Validar resposta', () => { const j = pm.response.json(); pm.expect(j.erro.codigo).to.be.a('string');  }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Ler configurações",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/configuracoes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "configuracoes"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = 200;",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));",
+                  "if (pm.response.code === status) { pm.test('Validar resposta', () => { const j = pm.response.json(); pm.expect(JSON.stringify(j)).not.to.be.undefined; pm.collectionVariables.set('config_json', JSON.stringify(j)); pm.expect(j.kanban[1].id).not.to.be.undefined; pm.collectionVariables.set('status_id', j.kanban[1].id); pm.expect(j.funil[1].id).not.to.be.undefined; pm.collectionVariables.set('stage_id', j.funil[1].id);  }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reenviar configurações atuais",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/configuracoes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "configuracoes"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{{config_json}}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = 200;",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));",
+                  "if (pm.response.code === status) { pm.test('Validar resposta', () => { const j = pm.response.json(); pm.expect(j).to.eql(JSON.parse(pm.collectionVariables.get('config_json')));  }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Criar tarefa",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/tarefas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "tarefas"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Tarefa Insomnia {{run_id}}\",\n  \"descricao\": \"Teste de integração\",\n  \"cargo\": \"Desenvolvedor\",\n  \"projetoId\": {{project_id}},\n  \"clienteId\": {{client_id}},\n  \"prioridadeId\": {{priority_id}},\n  \"responsavelId\": {{me_id}},\n  \"prazoInicial\": \"2026-11-03\",\n  \"prazoFinal\": \"2026-11-30\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = 201;",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));",
+                  "if (pm.response.code === status) { pm.test('Validar resposta', () => { const j = pm.response.json(); pm.expect(j.id).not.to.be.undefined; pm.collectionVariables.set('task_id', j.id);  }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar tarefas filtradas",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/tarefas?projetoId={{project_id}}&page=1&limit=10",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "tarefas"
+              ],
+              "query": [
+                {
+                  "key": "projetoId",
+                  "value": "{{project_id}}"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = 200;",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));",
+                  "if (pm.response.code === status) { pm.test('Validar resposta', () => { const j = pm.response.json(); pm.expect(j.items).to.be.an('array'); pm.expect(j.total).to.be.a('number');  }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Buscar tarefa criada",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/tarefas/{{task_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "tarefas",
+                "{{task_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = 200;",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));",
+                  "if (pm.response.code === status) { pm.test('Validar resposta', () => { const j = pm.response.json(); pm.expect(j.id).to.eql(Number(pm.collectionVariables.get('task_id')));  }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Editar tarefa",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/tarefas/{{task_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "tarefas",
+                "{{task_id}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"descricao\": \"Descrição editada no Insomnia\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = 200;",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));",
+                  "if (pm.response.code === status) { pm.test('Validar resposta', () => { const j = pm.response.json(); pm.expect(j.descricao).to.eql('Descrição editada no Insomnia');  }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mover status da tarefa",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/tarefas/{{task_id}}/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "tarefas",
+                "{{task_id}}",
+                "status"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"statusId\": {{status_id}}\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = 200;",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));",
+                  "if (pm.response.code === status) { pm.test('Validar resposta', () => { const j = pm.response.json(); pm.expect(j.statusId).to.eql(Number(pm.collectionVariables.get('status_id')));  }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Avançar etapa da tarefa",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/tarefas/{{task_id}}/avancos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "tarefas",
+                "{{task_id}}",
+                "avancos"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"etapaId\": {{stage_id}},\n  \"responsavelId\": {{me_id}}\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = 201;",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));",
+                  "if (pm.response.code === status) { pm.test('Validar resposta', () => { const j = pm.response.json(); pm.expect(j.etapaId).to.eql(Number(pm.collectionVariables.get('stage_id')));  }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Adicionar item ao checklist",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/tarefas/{{task_id}}/checklist/itens",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "tarefas",
+                "{{task_id}}",
+                "checklist",
+                "itens"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Conferir documento\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = 201;",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));",
+                  "if (pm.response.code === status) { pm.test('Validar resposta', () => { const j = pm.response.json(); pm.expect(j.id).not.to.be.undefined; pm.collectionVariables.set('item_id', j.id);  }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Concluir item do checklist",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/tarefas/{{task_id}}/checklist/itens/{{item_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "tarefas",
+                "{{task_id}}",
+                "checklist",
+                "itens",
+                "{{item_id}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"concluido\": true\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = 200;",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));",
+                  "if (pm.response.code === status) { pm.test('Validar resposta', () => { const j = pm.response.json(); pm.expect(j.concluido).to.eql(true);  }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Enviar anexo de texto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/plain"
+              },
+              {
+                "key": "X-File-Name",
+                "value": "insomnia.txt"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/tarefas/{{task_id}}/anexos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "tarefas",
+                "{{task_id}}",
+                "anexos"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "Anexo de teste Folks Connect"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = 201;",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));",
+                  "if (pm.response.code === status) { pm.test('Validar resposta', () => { const j = pm.response.json(); pm.expect(j.items[0].nome).to.eql('insomnia.txt'); pm.expect(j.items[0].id).not.to.be.undefined; pm.collectionVariables.set('attachment_id', j.items[0].id);  }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Baixar e verificar conteúdo do anexo",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/tarefas/{{task_id}}/anexos/{{attachment_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "tarefas",
+                "{{task_id}}",
+                "anexos",
+                "{{attachment_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = 200;",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));",
+                  "if (pm.response.code === status) { pm.test('Validar resposta', () => { pm.expect(pm.response.text()).to.eql('Anexo de teste Folks Connect');  }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Excluir anexo",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/tarefas/{{task_id}}/anexos/{{attachment_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "tarefas",
+                "{{task_id}}",
+                "anexos",
+                "{{attachment_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = 204;",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Anexo excluído retorna 404",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/tarefas/{{task_id}}/anexos/{{attachment_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "tarefas",
+                "{{task_id}}",
+                "anexos",
+                "{{attachment_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = 404;",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));",
+                  "if (pm.response.code === status) { pm.test('Validar resposta', () => { const j = pm.response.json(); pm.expect(j.erro.codigo).to.be.a('string');  }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Criar vaga",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/vagas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "vagas"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cargo\": \"Analista Insomnia {{run_id}}\",\n  \"perfilDesejado\": \"Experiência em Dart\",\n  \"responsavelId\": {{me_id}},\n  \"clienteId\": {{client_id}},\n  \"canais\": [\n    {{channel_id}}\n  ],\n  \"prazoInicial\": \"2026-11-03\",\n  \"prazoFinal\": \"2026-11-30\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = 201;",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));",
+                  "if (pm.response.code === status) { pm.test('Validar resposta', () => { const j = pm.response.json(); pm.expect(j.id).not.to.be.undefined; pm.collectionVariables.set('vacancy_id', j.id); pm.expect(j.indicadores.disponiveis).to.eql(false);  }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar vagas pelo canal de teste",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/vagas?canalId={{channel_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "vagas"
+              ],
+              "query": [
+                {
+                  "key": "canalId",
+                  "value": "{{channel_id}}"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = 200;",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));",
+                  "if (pm.response.code === status) { pm.test('Validar resposta', () => { const j = pm.response.json(); pm.expect(j.items).to.be.an('array'); pm.expect(j.total).to.be.a('number'); pm.expect(j.items.some(x => x.id === Number(pm.collectionVariables.get('vacancy_id')))).to.eql(true); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Desativar usuário de teste",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/usuarios/{{user_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "{{user_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = 204;",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Sessão do usuário desativado foi revogada",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{restricted_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/usuarios/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "me"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = 401;",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));",
+                  "if (pm.response.code === status) { pm.test('Validar resposta', () => { const j = pm.response.json(); pm.expect(j.erro.codigo).to.be.a('string');  }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Logout admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/logout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "logout"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = 204;",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Token do admin revogado",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/usuarios/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "me"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = 401;",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));",
+                  "if (pm.response.code === status) { pm.test('Validar resposta', () => { const j = pm.response.json(); pm.expect(j.erro.codigo).to.be.a('string');  }); }"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02 - Validação sem login e recuperação padrão",
+      "item": [
+        {
+          "name": "Perfil sem autenticação",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/usuarios/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "me"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = 401;",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));",
+                  "if (pm.response.code === status) { pm.test('Validar resposta', () => { const j = pm.response.json(); pm.expect(j.erro.codigo).to.be.a('string');  }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Recuperar senha (503 sem SMTP, 202 com SMTP)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/recuperar-senha",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "recuperar-senha"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"insomnia-sem-conta@example.test\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = Number(pm.collectionVariables.get('recovery_status'));",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));",
+                  "if (pm.response.code === status) { pm.test('Validar resposta', () => { const j = pm.response.json(); if (status === 503) { pm.expect(j.erro.codigo).to.eql('email_indisponivel'); } else { pm.expect(j.mensagem).to.be.a('string'); } pm.expect(j).not.to.have.property('token'); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Redefinir senha com token inválido",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/redefinir-senha",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "redefinir-senha"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"invalido-{{run_id}}\",\n  \"senha\": \"{{new_user_password}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = 400;",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));",
+                  "if (pm.response.code === status) { pm.test('Validar resposta', () => { const j = pm.response.json(); pm.expect(j.erro.codigo).to.be.a('string');  }); }"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03 - SMTP manual com usuário descartável",
+      "item": [
+        {
+          "name": "Login admin para preparar recuperação",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{admin_email}}\",\n  \"senha\": \"{{admin_password}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('run_id', String(Date.now())); pm.collectionVariables.unset('reset_token');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = 200;",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));",
+                  "if (pm.response.code === status) { pm.test('Validar resposta', () => { const j = pm.response.json(); pm.expect(j.token).not.to.be.undefined; pm.collectionVariables.set('token', j.token);  }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Buscar cargo",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/cargos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "cargos"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = 200;",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));",
+                  "if (pm.response.code === status) { pm.test('Validar resposta', () => { const j = pm.response.json(); pm.expect(j.items[0].id).not.to.be.undefined; pm.collectionVariables.set('role_id', j.items[0].id);  }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Criar usuário com e-mail recebido no SMTP de teste",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/usuarios",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "usuarios"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{recovery_email}}\",\n  \"senha\": \"{{user_password}}\",\n  \"nome\": \"Usuário recuperação Insomnia\",\n  \"cargoId\": {{role_id}},\n  \"permissoes\": []\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get('recovery_email')) throw new Error('Preencha recovery_email com um endereço descartável.');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = 201;",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));",
+                  "if (pm.response.code === status) { pm.test('Validar resposta', () => { const j = pm.response.json(); pm.expect(j.id).not.to.be.undefined; pm.collectionVariables.set('recovery_user_id', j.id);  }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Enviar recuperação por e-mail",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/recuperar-senha",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "recuperar-senha"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{recovery_email}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = 202;",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));",
+                  "if (pm.response.code === status) { pm.test('Validar resposta', () => { const j = pm.response.json(); pm.expect(j.mensagem).to.be.a('string'); pm.expect(j).not.to.have.property('token'); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Redefinir com token do e-mail",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/redefinir-senha",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "redefinir-senha"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{reset_token}}\",\n  \"senha\": \"{{new_user_password}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get('reset_token')) throw new Error('Copie o token do e-mail para reset_token antes de enviar.');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = 204;",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Entrar com a senha nova",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{recovery_email}}\",\n  \"senha\": \"{{new_user_password}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = 200;",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));",
+                  "if (pm.response.code === status) { pm.test('Validar resposta', () => { const j = pm.response.json(); pm.expect(j.token).to.be.a('string'); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Desativar usuário de recuperação",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/usuarios/{{recovery_user_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "{{recovery_user_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = 204;",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Encerrar sessão admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/logout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "logout"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = 204;",
+                  "pm.test('HTTP esperado', () => pm.response.to.have.status(status));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
