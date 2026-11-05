@@ -15,8 +15,19 @@ Aplicacoes disponiveis:
 - Backend: http://localhost:8081/api/health
 - PostgreSQL: localhost:5432
 
-As migrations SQL colocadas em `backend/database/migrations` sao executadas
-automaticamente na primeira inicializacao do volume do PostgreSQL.
+As migrations SQL em `backend/database/migrations` são executadas pelo backend
+em cada inicialização, incluindo bancos já existentes. A tabela
+`schema_migrations` registra versão e checksum; migrations aplicadas não devem
+ser editadas. Não é necessário apagar o volume para atualizar o schema.
+
+Backend e testes no Insomnia: [guia de execução](docs/backend.md),
+[contrato HTTP](docs/rotas-backend.md),
+[coleção importável](docs/insomnia/folks-connect.json) e
+[relatório de verificações](docs/relatorio-backend.md).
+
+O usuário inicial é exclusivo de desenvolvimento e exige `APP_ENV=development`
+e `DEV_SEED=true`. As credenciais estão em `.env.example`; veja o guia antes de
+expor a aplicação fora do ambiente local.
 
 Para parar os containers sem remover os dados:
 

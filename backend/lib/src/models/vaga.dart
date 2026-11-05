@@ -4,13 +4,13 @@ class Vaga {
   String _perfilDeixado;
   DateTime _prazoInicial;
   DateTime _prazoFinal;
-  int _idDivulgacao;
-  int _candInscritos;
-  int _candIdeias;
-  int _erros;
+  int? _idDivulgacao;
+  int? _candInscritos;
+  int? _candIdeias;
+  int? _erros;
   int _clientesIdCliente;
   int _usuariosIdUsuario;
-  int _usuariosCargosIdCargo;
+  int? _usuariosCargosIdCargo;
 
   Vaga({
     required int idVaga,
@@ -18,13 +18,13 @@ class Vaga {
     required String perfilDeixado,
     required DateTime prazoInicial,
     required DateTime prazoFinal,
-    required int idDivulgacao,
-    required int candInscritos,
-    required int candIdeias,
-    required int erros,
+    required int? idDivulgacao,
+    required int? candInscritos,
+    required int? candIdeias,
+    required int? erros,
     required int clientesIdCliente,
     required int usuariosIdUsuario,
-    required int usuariosCargosIdCargo,
+    required int? usuariosCargosIdCargo,
   }) : _idVaga = idVaga,
        _cargo = cargo,
        _perfilDeixado = perfilDeixado,
@@ -53,17 +53,17 @@ class Vaga {
   DateTime get prazoFinal => _prazoFinal;
   set prazoFinal(DateTime value) => _prazoFinal = value;
 
-  int get idDivulgacao => _idDivulgacao;
-  set idDivulgacao(int value) => _idDivulgacao = value;
+  int? get idDivulgacao => _idDivulgacao;
+  set idDivulgacao(int? value) => _idDivulgacao = value;
 
-  int get candInscritos => _candInscritos;
-  set candInscritos(int value) => _candInscritos = value;
+  int? get candInscritos => _candInscritos;
+  set candInscritos(int? value) => _candInscritos = value;
 
-  int get candIdeias => _candIdeias;
-  set candIdeias(int value) => _candIdeias = value;
+  int? get candIdeias => _candIdeias;
+  set candIdeias(int? value) => _candIdeias = value;
 
-  int get erros => _erros;
-  set erros(int value) => _erros = value;
+  int? get erros => _erros;
+  set erros(int? value) => _erros = value;
 
   int get clientesIdCliente => _clientesIdCliente;
   set clientesIdCliente(int value) => _clientesIdCliente = value;
@@ -71,6 +71,6 @@ class Vaga {
   int get usuariosIdUsuario => _usuariosIdUsuario;
   set usuariosIdUsuario(int value) => _usuariosIdUsuario = value;
 
-  int get usuariosCargosIdCargo => _usuariosCargosIdCargo;
-  set usuariosCargosIdCargo(int value) => _usuariosCargosIdCargo = value;
+  int? get usuariosCargosIdCargo => _usuariosCargosIdCargo;
+  set usuariosCargosIdCargo(int? value) => _usuariosCargosIdCargo = value;
 }

@@ -11,7 +11,6 @@ services:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./backend/database/migrations:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
@@ -31,6 +30,18 @@ services:
       DATABASE_NAME: ${POSTGRES_DB:-folks_connect}
       DATABASE_USER: ${POSTGRES_USER:-folks_connect}
       DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-folks_connect_dev}
+      APP_ENV: ${APP_ENV:-development}
+      DEV_SEED: ${DEV_SEED:-true}
+      DEV_ADMIN_EMAIL: ${DEV_ADMIN_EMAIL:-admin@folks.local}
+      DEV_ADMIN_PASSWORD: ${DEV_ADMIN_PASSWORD:-FolksDev!2026}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8080}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_FROM: ${SMTP_FROM:-}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_SSL: ${SMTP_SSL:-false}
+      SMTP_ALLOW_INSECURE: ${SMTP_ALLOW_INSECURE:-false}
     depends_on:
       database:
         condition: service_healthy
@@ -50,5 +61,43 @@ services:
     ports:
       - "${FRONTEND_PORT:-8080}:80"
 
+  backend-test:
+    profiles: [test]
+    build:
+      context: ./backend
+      target: build
+    environment:
+      RUN_DB_TESTS: "true"
+      DATABASE_HOST: database
+      DATABASE_NAME: folks_connect_test
+      DATABASE_USER: ${POSTGRES_USER:-folks_connect}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-folks_connect_dev}
+      API_URL: http://backend-e2e:8080/api
+    volumes:
+      - test_state:/verification
+    depends_on:
+      database:
+        condition: service_healthy
+    command: ["dart", "test", "--reporter", "expanded"]
+
+  backend-e2e:
+    profiles: [test]
+    build:
+      context: ./backend
+    environment:
+      PORT: 8080
+      DATABASE_HOST: database
+      DATABASE_NAME: folks_connect_test
+      DATABASE_USER: ${POSTGRES_USER:-folks_connect}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-folks_connect_dev}
+      APP_ENV: development
+      DEV_SEED: "true"
+      DEV_ADMIN_EMAIL: admin@folks.e2e
+      DEV_ADMIN_PASSWORD: FolksE2e!2026
+    depends_on:
+      database:
+        condition: service_healthy
+
 volumes:
   postgres_data:
+  test_state:

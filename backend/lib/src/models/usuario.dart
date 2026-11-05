@@ -2,13 +2,13 @@ class Usuario {
   int _idUsuario;
   String _email;
   int _cargosIdCargo;
-  int _projetosIdProjeto;
+  int? _projetosIdProjeto;
 
   Usuario({
     required int idUsuario,
     required String email,
     required int cargosIdCargo,
-    required int projetosIdProjeto,
+    required int? projetosIdProjeto,
   }) : _idUsuario = idUsuario,
        _email = email,
        _cargosIdCargo = cargosIdCargo,
@@ -23,6 +23,6 @@ class Usuario {
   int get cargosIdCargo => _cargosIdCargo;
   set cargosIdCargo(int value) => _cargosIdCargo = value;
 
-  int get projetosIdProjeto => _projetosIdProjeto;
-  set projetosIdProjeto(int value) => _projetosIdProjeto = value;
+  int? get projetosIdProjeto => _projetosIdProjeto;
+  set projetosIdProjeto(int? value) => _projetosIdProjeto = value;
 }
