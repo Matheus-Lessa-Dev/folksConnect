@@ -1,5 +1,8 @@
 # Plano de implementação
 
+> Plano da entrega inicial. A continuação com camadas, candidatos, dashboards,
+> edição de vaga e importação CSV está em [backend-camadas.md](backend-camadas.md).
+
 Contrato de referência: `../rotas-backend-folks.md` (o caminho solicitado
 `docs/rotas-backend.md` não existia na cópia inicial). A implementação preserva
 Dart/Shelf, PostgreSQL, os models e o schema 001. Branch: `feature/backend-api`.

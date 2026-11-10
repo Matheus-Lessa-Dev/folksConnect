@@ -1628,7 +1628,7 @@
                 "exec": [
                   "const status = 201;",
                   "pm.test('HTTP esperado', () => pm.response.to.have.status(status));",
-                  "if (pm.response.code === status) { pm.test('Validar resposta', () => { const j = pm.response.json(); pm.expect(j.id).not.to.be.undefined; pm.collectionVariables.set('vacancy_id', j.id); pm.expect(j.indicadores.disponiveis).to.eql(false);  }); }"
+                  "if (pm.response.code === status) { pm.test('Validar resposta', () => { const j = pm.response.json(); pm.expect(j.id).not.to.be.undefined; pm.collectionVariables.set('vacancy_id', j.id); pm.expect(j.indicadores.disponiveis).to.eql(true); pm.expect(j.indicadores.inscritos).to.eql(0);  }); }"
                 ]
               }
             }
