@@ -103,9 +103,23 @@ void main() {
     await tester.pumpAndSettle();
     expect(controller.visibleTasks.length, 2);
     expect(find.text('Triagem de currículos'), findsNothing);
+    final card = find.byKey(const ValueKey('open-demo-screening'));
+    expect(card, findsOneWidget);
+    for (final stage in RecruitmentStage.values) {
+      expect(
+        find.descendant(of: card, matching: find.text(stage.label)),
+        findsNothing,
+      );
+    }
     await tester.tap(find.text('Lista'));
     await tester.pumpAndSettle();
     expect(controller.listView, isTrue);
+    for (final stage in RecruitmentStage.values) {
+      expect(
+        find.descendant(of: card, matching: find.text(stage.label)),
+        findsOneWidget,
+      );
+    }
     expect(find.text('Entrevistas — Desenvolvedor Sênior'), findsOneWidget);
     await tester.tap(find.byTooltip('Mover tarefa').first);
     await tester.pumpAndSettle();

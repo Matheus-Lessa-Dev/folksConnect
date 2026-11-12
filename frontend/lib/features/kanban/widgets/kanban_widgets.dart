@@ -106,10 +106,12 @@ class TaskCard extends StatelessWidget {
     required this.task,
     required this.onOpen,
     required this.onMove,
+    this.showStageLabels = false,
   });
   final KanbanTask task;
   final VoidCallback onOpen;
   final ValueChanged<BoardStatus> onMove;
+  final bool showStageLabels;
 
   @override
   Widget build(BuildContext context) => Material(
@@ -173,7 +175,7 @@ class TaskCard extends StatelessWidget {
             ),
             Text(task.title, style: FolksTheme.heading.copyWith(fontSize: 18)),
             const SizedBox(height: 12),
-            Pipeline(task.stage, labels: false),
+            Pipeline(task.stage, labels: showStageLabels),
             const SizedBox(height: 10),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
