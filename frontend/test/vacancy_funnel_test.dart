@@ -76,6 +76,21 @@ void main() {
     expect(find.text('Início:'), findsOneWidget);
     expect(find.text('Fim:'), findsOneWidget);
     expect(find.text('Candidatos inscritos'), findsOneWidget);
+    String dateText(DateTime date) => '${shortDate(date)}/${date.year}';
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('vacancy-start')),
+        matching: find.text(dateText(vacancy.start)),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('vacancy-end')),
+        matching: find.text(dateText(vacancy.end)),
+      ),
+      findsOneWidget,
+    );
 
     final profile = find.byType(TextFormField);
     await tester.ensureVisible(profile);
@@ -152,6 +167,15 @@ void main() {
     expect(find.text('Início:'), findsOneWidget);
     expect(find.text('Fim:'), findsOneWidget);
     expect(find.text('01/01/2000'), findsNWidgets(2));
+    for (final (label, key) in [
+      ('Início:', 'vacancy-start'),
+      ('Fim:', 'vacancy-end'),
+    ]) {
+      expect(
+        tester.getTopRight(find.text(label)).dx,
+        lessThan(tester.getTopLeft(find.byKey(Key(key))).dx),
+      );
+    }
     await tapVisible(tester, find.text('Cadastrar Vagas'));
     expect(controller.vacancies, isEmpty);
     expect(find.text('Informe o cargo da vaga.'), findsOneWidget);
@@ -165,7 +189,25 @@ void main() {
     );
     await tester.tap(find.text('+ Novo Cliente').last);
     await tester.pumpAndSettle();
-    await tapVisible(tester, find.byKey(const ValueKey('client-Empresa')));
+    final companyField = find.byKey(const ValueKey('client-Empresa'));
+    await tapVisible(tester, companyField);
+    final input = tester.widget<EditableText>(
+      find.descendant(of: companyField, matching: find.byType(EditableText)),
+    );
+    final decorator = tester.widget<InputDecorator>(
+      find.descendant(of: companyField, matching: find.byType(InputDecorator)),
+    );
+    expect(input.focusNode.hasFocus, isTrue);
+    expect(input.style.color, Colors.black);
+    expect(input.style.fontWeight, FontWeight.bold);
+    expect(
+      WidgetStateProperty.resolveAs(decorator.decoration.fillColor!, {
+        WidgetState.focused,
+      }),
+      Colors.white,
+    );
+    expect(decorator.decoration.floatingLabelStyle?.color, Colors.white);
+    expect(decorator.decoration.floatingLabelStyle?.shadows, isNotEmpty);
     await tester.enterText(
       find.byKey(const ValueKey('client-Empresa')),
       'Empresa Exemplo',
