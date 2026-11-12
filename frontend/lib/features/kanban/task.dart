@@ -58,6 +58,7 @@ class KanbanTask {
     this.priority = TaskPriority.medium,
     this.status = BoardStatus.todo,
     this.stage = RecruitmentStage.screening,
+    this.completedAt,
     this.description = '',
     List<ChecklistItem> checklist = const [],
     List<TaskAttachment> attachments = const [],
@@ -75,6 +76,7 @@ class KanbanTask {
   final TaskPriority priority;
   final BoardStatus status;
   final RecruitmentStage stage;
+  final DateTime? completedAt;
   final String description;
   final List<ChecklistItem> checklist;
   final List<TaskAttachment> attachments;
@@ -84,6 +86,7 @@ class KanbanTask {
     TaskPriority? priority,
     BoardStatus? status,
     RecruitmentStage? stage,
+    DateTime? completedAt,
     String? description,
     List<ChecklistItem>? checklist,
     List<TaskAttachment>? attachments,
@@ -99,6 +102,9 @@ class KanbanTask {
     priority: priority ?? this.priority,
     status: status ?? this.status,
     stage: stage ?? this.stage,
+    completedAt: (status ?? this.status) == BoardStatus.done
+        ? completedAt ?? this.completedAt
+        : null,
     description: description ?? this.description,
     checklist: checklist ?? this.checklist,
     attachments: attachments ?? this.attachments,

@@ -5,8 +5,9 @@ import 'task.dart';
 /// Estado de demonstracao. A API existente ainda so expoe health check.
 /// O controller nao grava nem simula gravacao no backend.
 class KanbanController extends ChangeNotifier {
-  KanbanController({List<KanbanTask>? tasks})
-    : _tasks = List.of(tasks ?? demoTasks());
+  KanbanController({List<KanbanTask>? tasks, DateTime Function()? now})
+    : _tasks = List.of(tasks ?? demoTasks()),
+      _now = now ?? DateTime.now;
 
   static const projects = [
     'Recrutamento',
@@ -35,6 +36,7 @@ class KanbanController extends ChangeNotifier {
   ];
 
   final List<KanbanTask> _tasks;
+  final DateTime Function() _now;
   String _filter = 'Todos';
   bool _listView = false;
   int _sequence = 0;
@@ -63,7 +65,11 @@ class KanbanController extends ChangeNotifier {
     if (task.end.isBefore(task.start)) {
       throw ArgumentError('O fim deve ser igual ou posterior ao início.');
     }
-    _tasks.add(task);
+    _tasks.add(
+      task.status == BoardStatus.done && task.completedAt == null
+          ? task.copyWith(completedAt: _now())
+          : task,
+    );
     // A tarefa recem-criada deve continuar visivel, mesmo sob outro filtro.
     if (_filter != 'Todos' && _filter != task.project) _filter = task.project;
     notifyListeners();
@@ -72,7 +78,14 @@ class KanbanController extends ChangeNotifier {
   void update(KanbanTask task) {
     final index = _tasks.indexWhere((item) => item.id == task.id);
     if (index < 0) return;
-    _tasks[index] = task;
+    final previous = _tasks[index];
+    _tasks[index] = task.status == BoardStatus.done
+        ? task.copyWith(
+            completedAt: previous.status == BoardStatus.done
+                ? previous.completedAt ?? _now()
+                : _now(),
+          )
+        : task.copyWith();
     notifyListeners();
   }
 
