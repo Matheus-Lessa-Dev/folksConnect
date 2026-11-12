@@ -46,8 +46,9 @@ class _KanbanScreenState extends State<KanbanScreen> {
     TaskDetailsSheet(controller: _controller, taskId: task.id),
   );
 
-  Widget _card(KanbanTask task) => TaskCard(
+  Widget _card(KanbanTask task, {bool showStageLabels = false}) => TaskCard(
     task: task,
+    showStageLabels: showStageLabels,
     onOpen: () => _open(task),
     onMove: (status) {
       _controller.update(task.copyWith(status: status));
@@ -165,7 +166,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
               style: const TextStyle(color: FolksColors.muted, fontSize: 12),
             ),
           ),
-          _card(tasks[index]),
+          _card(tasks[index], showStageLabels: true),
         ],
       ),
     );
