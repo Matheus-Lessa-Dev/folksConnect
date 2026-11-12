@@ -1,5 +1,9 @@
 # Relatório de entrega do backend
 
+> Registro histórico de 03/11/2026. A organização e os fluxos adicionados depois
+> estão em [backend-camadas.md](backend-camadas.md); consulte também o
+> [contrato atual](rotas-backend.md). As pendências abaixo refletem aquela entrega.
+
 Data: 03/11/2026. Branch: `feature/backend-api`.
 
 O contrato analisado foi `rotas-backend-folks.md` na raiz. O caminho solicitado

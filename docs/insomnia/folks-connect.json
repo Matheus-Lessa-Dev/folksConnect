@@ -1,7 +1,7 @@
 {
   "_type": "export",
   "__export_format": 4,
-  "__export_date": "2026-11-03T00:00:00.000Z",
+  "__export_date": "2026-11-09T00:00:00.000Z",
   "__export_source": "folks-connect-backend",
   "resources": [
     {
@@ -10,7 +10,7 @@
       "parentId": null,
       "name": "Folks Connect API",
       "scope": "collection",
-      "description": "35 endpoints. Inicie pelo Login e copie o token para o ambiente. Consulte docs/backend.md. IDs devem vir das respostas reais."
+      "description": "46 endpoints. Inicie pelo Login e copie o token para o ambiente. Consulte docs/backend.md e docs/backend-camadas.md. IDs devem vir das respostas reais."
     },
     {
       "_id": "env_folksconnect",
@@ -34,6 +34,10 @@
         "etapaId": 2,
         "itemId": 1,
         "anexoId": 1,
+        "vagaId": 1,
+        "candidatoId": 1,
+        "importacaoId": 1,
+        "chaveImportacao": "primeiro-lote",
         "tokenRecuperacao": "",
         "configuracoes": "COPIE AQUI O JSON COMPLETO DE GET /configuracoes ANTES DE USAR PUT"
       },
@@ -1079,7 +1083,7 @@
       "name": "Listar vagas",
       "method": "GET",
       "url": "{{ _.base_url }}/vagas?page=1&limit=20",
-      "description": "Filtros: clienteId, responsavelId, etapaId, canalId e busca. Indicadores sem fonte definida são nulos.",
+      "description": "Filtros: clienteId, responsavelId, etapaId, canalId e busca. Indicadores são calculados dos candidatos vinculados.",
       "body": {},
       "parameters": [],
       "headers": [
@@ -1123,6 +1127,351 @@
       ],
       "authentication": {},
       "metaSortKey": 35,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_folks_36",
+      "_type": "request",
+      "parentId": "fld_folks_08",
+      "name": "Detalhes da vaga",
+      "method": "GET",
+      "url": "{{ _.base_url }}/vagas/{{ _.vagaId }}",
+      "description": "",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 36,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_folks_37",
+      "_type": "request",
+      "parentId": "fld_folks_08",
+      "name": "Editar vaga",
+      "method": "PATCH",
+      "url": "{{ _.base_url }}/vagas/{{ _.vagaId }}",
+      "description": "Exige D. Campos do cadastro e etapaId; etapa só avança por ordem.",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"cargo\": \"Analista de sistemas\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 37,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "fld_folks_09",
+      "_type": "request_group",
+      "parentId": "wrk_folksconnect",
+      "name": "09 Candidatos",
+      "description": "",
+      "environment": {},
+      "metaSortKey": 48
+    },
+    {
+      "_id": "req_folks_38",
+      "_type": "request",
+      "parentId": "fld_folks_09",
+      "name": "Listar candidatos",
+      "method": "GET",
+      "url": "{{ _.base_url }}/vagas/{{ _.vagaId }}/candidatos",
+      "description": "",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 38,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_folks_39",
+      "_type": "request",
+      "parentId": "fld_folks_09",
+      "name": "Cadastrar candidato",
+      "method": "POST",
+      "url": "{{ _.base_url }}/vagas/{{ _.vagaId }}/candidatos",
+      "description": "Exige C. Salve o id em candidatoId. E-mail único por vaga.",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"nome\": \"Pessoa candidata\",\n  \"email\": \"candidato@example.com\",\n  \"perfilIdeal\": false\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 39,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_folks_40",
+      "_type": "request",
+      "parentId": "fld_folks_09",
+      "name": "Detalhes do candidato",
+      "method": "GET",
+      "url": "{{ _.base_url }}/vagas/{{ _.vagaId }}/candidatos/{{ _.candidatoId }}",
+      "description": "",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 40,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_folks_41",
+      "_type": "request",
+      "parentId": "fld_folks_09",
+      "name": "Atualizar candidato",
+      "method": "PATCH",
+      "url": "{{ _.base_url }}/vagas/{{ _.vagaId }}/candidatos/{{ _.candidatoId }}",
+      "description": "",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"status\": \"em_analise\",\n  \"perfilIdeal\": true\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 41,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_folks_42",
+      "_type": "request",
+      "parentId": "fld_folks_09",
+      "name": "Remover candidato",
+      "method": "DELETE",
+      "url": "{{ _.base_url }}/vagas/{{ _.vagaId }}/candidatos/{{ _.candidatoId }}",
+      "description": "",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 42,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "fld_folks_10",
+      "_type": "request_group",
+      "parentId": "wrk_folksconnect",
+      "name": "10 Importação",
+      "description": "",
+      "environment": {},
+      "metaSortKey": 54
+    },
+    {
+      "_id": "req_folks_43",
+      "_type": "request",
+      "parentId": "fld_folks_10",
+      "name": "Importar vagas CSV",
+      "method": "POST",
+      "url": "{{ _.base_url }}/importacoes",
+      "description": "Exige A+C. Até 2 MiB/1000 vagas; lote atômico. Repita a chave para retomar o mesmo arquivo; mude para um lote novo.",
+      "body": {
+        "mimeType": "text/csv",
+        "text": "cargo,perfilDesejado,clienteId,responsavelId,prazoInicial,prazoFinal,canais\nAnalista,Experiência em Dart,{{ _.clienteId }},{{ _.responsavelId }},2026-11-01,2026-12-01,{{ _.canalId }}\n"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        },
+        {
+          "name": "X-Idempotency-Key",
+          "value": "{{ _.chaveImportacao }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "text/csv; charset=utf-8"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 43,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_folks_44",
+      "_type": "request",
+      "parentId": "fld_folks_10",
+      "name": "Consultar importação",
+      "method": "GET",
+      "url": "{{ _.base_url }}/importacoes/{{ _.importacaoId }}",
+      "description": "",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 44,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "fld_folks_11",
+      "_type": "request_group",
+      "parentId": "wrk_folksconnect",
+      "name": "11 Dashboard",
+      "description": "",
+      "environment": {},
+      "metaSortKey": 57
+    },
+    {
+      "_id": "req_folks_45",
+      "_type": "request",
+      "parentId": "fld_folks_11",
+      "name": "Atividades por status e etapa",
+      "method": "GET",
+      "url": "{{ _.base_url }}/dashboard/atividades?dataInicial=2026-01-01&dataFinal=2026-12-31",
+      "description": "",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 45,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_folks_46",
+      "_type": "request",
+      "parentId": "fld_folks_11",
+      "name": "Entregas por dia e responsável",
+      "method": "GET",
+      "url": "{{ _.base_url }}/dashboard/entregas?dataInicial=2026-01-01&dataFinal=2026-12-31",
+      "description": "",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 46,
       "isPrivate": false,
       "settingStoreCookies": false,
       "settingSendCookies": false,

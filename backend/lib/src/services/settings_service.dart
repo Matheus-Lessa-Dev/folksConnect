@@ -1,12 +1,14 @@
-import 'package:shelf/shelf.dart';
+import '../repositories/settings_repository.dart';
 
-import 'database.dart';
-import 'http.dart';
-import 'security.dart';
+import '../database.dart';
+import '../dto/input.dart';
+import '../dto/validation.dart';
+import '../security.dart';
 
-class Settings {
+class SettingsService {
   final Database db;
-  Settings(this.db);
+  final SettingsRepository repository = SettingsRepository();
+  SettingsService(this.db);
   static const sections = <String, (String, String, String, String)>{
     'kanban': ('etapas_kanban', 'id', 'G', 'H'),
     'funil': ('etapas_funil', 'id', 'I', 'J'),
@@ -17,19 +19,18 @@ class Settings {
     final result = <String, dynamic>{};
     for (final entry in sections.entries) {
       final (table, key, _, _) = entry.value;
-      result[entry.key] = await tx.query(
-          'SELECT $key AS id, nome, ordem FROM $table ORDER BY ordem, $key');
+      result[entry.key] = await repository.readSection(tx, table, key);
     }
     return result;
   }
 
-  Future<Response> get() => db.transaction((tx) async {
-        await tx.query('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');
-        return json(await read(tx));
+  Future<Row> get() => db.transaction((tx) async {
+        await repository.snapshot(tx);
+        return await read(tx);
       });
 
-  Future<Response> put(Request request, Identity user) async {
-    final data = await body(request, sections.keys.toSet());
+  Future<Row> put(JsonInput input, Identity user) async {
+    final data = input.only(sections.keys.toSet());
     final desired = <String, List<Row>>{};
     for (final section in sections.keys) {
       final raw = data[section];
@@ -56,7 +57,7 @@ class Settings {
       }).toList();
     }
     return db.transaction((tx) async {
-      await tx.query('SELECT pg_advisory_xact_lock(736289142)');
+      await repository.lockConfiguration(tx);
       final current = await read(tx);
       for (final entry in sections.entries) {
         final (table, key, createPermission, editPermission) = entry.value;
@@ -83,29 +84,26 @@ class Settings {
         if (changed || removed.isNotEmpty) user.require(editPermission);
         for (final id in removed) {
           // As FKs bloqueiam etapas em uso, inclusive no histórico de avanços.
-          await tx.query('DELETE FROM $table WHERE $key = @id', {'id': id});
+          await repository.deleteSectionItem(tx, table, key, {'id': id});
         }
         // Permite trocar dois nomes sem violar a unicidade durante a transação.
         if (changed) {
           final temporary = randomToken(12);
           for (final id in retained) {
-            await tx.query('UPDATE $table SET nome = @nome WHERE $key = @id',
-                {'id': id, 'nome': '__$temporary-$id'});
+            await repository.temporaryName(
+                tx, table, key, {'id': id, 'nome': '__$temporary-$id'});
           }
         }
         for (final row in next) {
           if (row['id'] == null) {
-            await tx.query(
-                'INSERT INTO $table (nome, ordem) VALUES (@nome, @ordem)',
-                {'nome': row['nome'], 'ordem': row['ordem']});
+            await repository.insertSectionItem(
+                tx, table, {'nome': row['nome'], 'ordem': row['ordem']});
           } else if (changed) {
-            await tx.query(
-                'UPDATE $table SET nome = @nome, ordem = @ordem WHERE $key = @id',
-                row);
+            await repository.updateSectionItem(tx, table, key, row);
           }
         }
       }
-      return json(await read(tx));
+      return await read(tx);
     });
   }
 }

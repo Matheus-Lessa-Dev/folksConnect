@@ -1,31 +1,21 @@
 import 'dart:io';
 import 'dart:convert';
 import 'dart:typed_data';
-
 import 'package:mime/mime.dart';
 import 'package:shelf/shelf.dart';
+import '../http.dart';
+import '../dto/upload.dart';
 
-import 'database.dart';
-import 'http.dart';
-import 'security.dart';
-
-class Upload {
-  final String name;
-  final String type;
-  final Uint8List bytes;
-  Upload(this.name, this.type, this.bytes);
-}
-
-class Attachments {
+class UploadDecoder {
   static const maxFile = 10 * 1024 * 1024;
-  final Database db;
-  Attachments(this.db);
-
   bool hasClosingBoundary(Uint8List bytes, String boundary) {
     final marker = ascii.encode('--$boundary--');
     for (var start = bytes.length - marker.length; start >= 0; start--) {
       if (bytes[start] != marker.first ||
-          (start != 0 && (start < 2 || bytes[start - 2] != 13 || bytes[start - 1] != 10))) {
+          (start != 0 &&
+              (start < 2 ||
+                  bytes[start - 2] != 13 ||
+                  bytes[start - 1] != 10))) {
         continue;
       }
       var matches = true;
@@ -36,8 +26,11 @@ class Attachments {
         }
       }
       final end = start + marker.length;
-      if (matches && (end == bytes.length ||
-          (end + 1 < bytes.length && bytes[end] == 13 && bytes[end + 1] == 10))) {
+      if (matches &&
+          (end == bytes.length ||
+              (end + 1 < bytes.length &&
+                  bytes[end] == 13 &&
+                  bytes[end + 1] == 10))) {
         return true;
       }
     }
@@ -59,7 +52,9 @@ class Attachments {
   String? multipartName(String? value) {
     // MIME expõe os bytes do cabeçalho como caracteres Latin-1; browsers e
     // Insomnia enviam nomes acentuados em UTF-8. Mantém clientes Latin-1 válidos.
-    if (value == null || value.codeUnits.any((unit) => unit > 255)) return value;
+    if (value == null || value.codeUnits.any((unit) => unit > 255)) {
+      return value;
+    }
     try {
       return utf8.decode(latin1.encode(value));
     } on FormatException {
@@ -84,13 +79,7 @@ class Attachments {
     return Upload(fileName(name), type, bytes);
   }
 
-  Future<Response> create(Request request, Identity user, int taskId) async {
-    user.require('B');
-    if (await db.one('SELECT id_tarefa FROM tarefas WHERE id_tarefa = @id',
-            {'id': taskId}) ==
-        null) {
-      missing('Tarefa');
-    }
+  Future<List<Upload>> read(Request request) async {
     final files = <Upload>[];
     ContentType type;
     try {
@@ -101,14 +90,18 @@ class Attachments {
     }
     if (type.mimeType == 'multipart/form-data') {
       final boundary = type.parameters['boundary'];
-      if (boundary == null || boundary.isEmpty || boundary.length > 70 ||
+      if (boundary == null ||
+          boundary.isEmpty ||
+          boundary.length > 70 ||
           boundary.codeUnits.any((value) => value < 32 || value > 126)) {
         invalid('Boundary multipart inválido.');
       }
       final bytes = await readLimited(request, 10 * maxFile + 65536);
       // O parser aguarda a última parte indefinidamente quando falta o
       // delimitador final. O corpo já está limitado e lido por completo aqui.
-      if (!hasClosingBoundary(bytes, boundary)) invalid('Multipart sem fechamento válido.');
+      if (!hasClosingBoundary(bytes, boundary)) {
+        invalid('Multipart sem fechamento válido.');
+      }
       try {
         await for (final part
             in MimeMultipartTransformer(boundary).bind(Stream.value(bytes))) {
@@ -124,12 +117,14 @@ class Attachments {
           // Consome cada parte antes de rejeitar metadados/tamanho: o parser
           // só libera o stream externo quando a parte atual é consumida.
           if (oversized) {
-            throw ApiError(413, 'limite_excedido', 'Cada arquivo pode ter até 10 MB.');
+            throw ApiError(
+                413, 'limite_excedido', 'Cada arquivo pode ter até 10 MB.');
           }
           final disposition =
               HeaderValue.parse(part.headers['content-disposition'] ?? '');
           if (disposition.value != 'form-data' ||
-              !{'arquivo', 'arquivos'}.contains(disposition.parameters['name'])) {
+              !{'arquivo', 'arquivos'}
+                  .contains(disposition.parameters['name'])) {
             invalid('Use o campo multipart arquivo ou arquivos.');
           }
           if (files.length >= 10) {
@@ -156,45 +151,6 @@ class Attachments {
           upload(name, type.mimeType, await readLimited(request, maxFile)));
     }
     if (files.isEmpty) invalid('Envie ao menos um arquivo.');
-    return db.transaction((tx) async {
-      final result = <Row>[];
-      for (final file in files) {
-        final row = await tx.one(
-            '''INSERT INTO anexos (tarefa_id, nome, content_type, tamanho, conteudo)
-          VALUES (@tarefa, @nome, @tipo, @tamanho, @conteudo)
-          RETURNING id, nome, content_type AS "contentType", tamanho, criado_em AS "criadoEm"''',
-            {
-              'tarefa': taskId,
-              'nome': file.name,
-              'tipo': file.type,
-              'tamanho': file.bytes.length,
-              'conteudo': file.bytes
-            });
-        result.add(row!);
-      }
-      return json({'items': result}, status: 201);
-    });
-  }
-
-  Future<Response> download(int taskId, int id) async {
-    final row = await db.one(
-        'SELECT nome, content_type, conteudo FROM anexos WHERE id = @id AND tarefa_id = @tarefa',
-        {'id': id, 'tarefa': taskId});
-    if (row == null) missing('Anexo da tarefa');
-    return Response.ok(row['conteudo'], headers: {
-      'content-type': row['content_type'] as String,
-      'content-disposition':
-          "attachment; filename*=UTF-8''${Uri.encodeComponent(row['nome'] as String)}",
-      'cache-control': 'no-store',
-    });
-  }
-
-  Future<Response> delete(Identity user, int taskId, int id) async {
-    user.require('B');
-    final result = await db.query(
-        'DELETE FROM anexos WHERE id = @id AND tarefa_id = @tarefa RETURNING id',
-        {'id': id, 'tarefa': taskId});
-    if (result.isEmpty) missing('Anexo da tarefa');
-    return Response(204);
+    return files;
   }
 }

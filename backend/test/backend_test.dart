@@ -65,7 +65,7 @@ void main() {
 
     test('migrations são idempotentes, health verifica o banco', () async {
       await db.migrate('database/migrations');
-      expect((await db.query('SELECT * FROM schema_migrations')).length, 3);
+      expect((await db.query('SELECT * FROM schema_migrations')).length, 4);
       expect((await call('GET', '/api/health')).$1, 200);
       expect((await call('GET', '/api/usuarios/me')).$1, 401);
     });
@@ -480,16 +480,24 @@ void main() {
       expect(multiple.$1, 201);
       expect(multiple.$2['items'].length, 2);
       expect(multiple.$2['items'][0]['nome'], 'currículo.txt');
-      final unknownField = multipart.replaceFirst('name="arquivos"', 'name="outro"');
-      expect((await sendFile(utf8.encode(unknownField),
-          type: 'multipart/form-data; boundary=folks-boundary')).$1, 400);
+      final unknownField =
+          multipart.replaceFirst('name="arquivos"', 'name="outro"');
+      expect(
+          (await sendFile(utf8.encode(unknownField),
+                  type: 'multipart/form-data; boundary=folks-boundary'))
+              .$1,
+          400);
       final oversizedMultipart = <int>[
-        ...utf8.encode('--folks-boundary\r\nContent-Disposition: form-data; name="arquivo"; filename="grande.bin"\r\n\r\n'),
+        ...utf8.encode(
+            '--folks-boundary\r\nContent-Disposition: form-data; name="arquivo"; filename="grande.bin"\r\n\r\n'),
         ...List.filled(10485761, 0),
         ...utf8.encode('\r\n--folks-boundary--\r\n')
       ];
-      expect((await sendFile(oversizedMultipart,
-          type: 'multipart/form-data; boundary=folks-boundary')).$1, 413);
+      expect(
+          (await sendFile(oversizedMultipart,
+                  type: 'multipart/form-data; boundary=folks-boundary'))
+              .$1,
+          413);
       final invalidBatch = multipart.replaceFirst(
           'filename="segundo.txt"', 'filename="../segundo.txt"');
       expect(
@@ -520,7 +528,7 @@ void main() {
           404);
     });
     test(
-        'vaga com múltiplos canais, filtros, rollback e indicadores indisponíveis',
+        'vaga com múltiplos canais, filtros, rollback e indicadores reais vazios',
         () async {
       final channel = await call('POST', '/api/divulgacoes',
           authorization: token,
@@ -546,10 +554,10 @@ void main() {
       expect(created.$1, 201);
       expect(created.$2['canais'].length, 2);
       expect(created.$2['indicadores'], {
-        'inscritos': null,
-        'candidatosIdeais': null,
-        'erros': null,
-        'disponiveis': false
+        'inscritos': 0,
+        'candidatosIdeais': 0,
+        'erros': 0,
+        'disponiveis': true
       });
       final listed = await call(
           'GET', '/api/vagas?canalId=${channel.$2['id']}&limit=1',
@@ -578,6 +586,384 @@ void main() {
               ['responsavelId'],
           me['id']);
     });
+    test('edição de vaga valida canais, datas, avanço e rollback', () async {
+      final vacancy = (await call('GET', '/api/vagas', authorization: token))
+          .$2['items'][0];
+      final id = vacancy['id'];
+      final stages =
+          (await call('GET', '/api/configuracoes', authorization: token))
+              .$2['funil'] as List;
+      final lastStage = stages.last['id'];
+      final updated = await call('PATCH', '/api/vagas/$id',
+          authorization: token,
+          data: {
+            'cargo': 'Cargo atualizado',
+            'etapaId': lastStage,
+            'canais': []
+          });
+      expect(updated.$1, 200);
+      expect(updated.$2['cargo'], 'Cargo atualizado');
+      expect(updated.$2['etapaId'], lastStage);
+      expect(updated.$2['canais'], isEmpty);
+      expect(
+          (await call('PATCH', '/api/vagas/$id',
+                  authorization: token, data: {'etapaId': stages.first['id']}))
+              .$1,
+          409);
+      expect(
+          (await call('PATCH', '/api/vagas/$id', authorization: token, data: {
+            'cargo': 'Não deve gravar',
+            'canais': [999999]
+          }))
+              .$1,
+          400);
+      expect(
+          (await call('GET', '/api/vagas/$id', authorization: token))
+              .$2['cargo'],
+          'Cargo atualizado');
+      expect(
+          (await call('PATCH', '/api/vagas/$id',
+                  authorization: token, data: {'prazoFinal': '2020-01-01'}))
+              .$1,
+          400);
+      expect(
+          (await call('PATCH', '/api/vagas/999999',
+                  authorization: token, data: {'cargo': 'Inexistente'}))
+              .$1,
+          404);
+    });
+
+    test('candidatos: vínculos, duplicidade, indicadores e remoção', () async {
+      final vacancy = (await call('GET', '/api/vagas', authorization: token))
+          .$2['items'][0]['id'];
+      final path = '/api/vagas/$vacancy/candidatos';
+      final created = await call('POST', path, authorization: token, data: {
+        'nome': 'Pessoa candidata',
+        'email': 'pessoa@folks.test',
+        'perfilIdeal': true
+      });
+      expect(created.$1, 201);
+      final id = created.$2['id'];
+      expect(
+          (await call('POST', path,
+                  authorization: token,
+                  data: {'nome': 'Repetido', 'email': 'PESSOA@folks.test'}))
+              .$1,
+          409);
+      expect(
+          (await call('POST', path, authorization: token, data: {
+            'nome': 'Erro sem motivo',
+            'email': 'erro@folks.test',
+            'status': 'erro'
+          }))
+              .$1,
+          400);
+      final error = await call('POST', path, authorization: token, data: {
+        'nome': 'Cadastro incompleto',
+        'email': 'erro@folks.test',
+        'status': 'erro',
+        'motivoErro': 'Documento inválido'
+      });
+      expect(error.$1, 201);
+      final indicators =
+          (await call('GET', '/api/vagas/$vacancy', authorization: token))
+              .$2['indicadores'];
+      expect(indicators, {
+        'inscritos': 2,
+        'candidatosIdeais': 1,
+        'erros': 1,
+        'disponiveis': true
+      });
+      expect(
+          (await call('GET', '/api/vagas/999999/candidatos/$id',
+                  authorization: token))
+              .$1,
+          404);
+      expect(
+          (await call('PATCH', '/api/vagas/999999/candidatos/$id',
+                  authorization: token, data: {'nome': 'Outro'}))
+              .$1,
+          404);
+      final updated = await call('PATCH', '$path/${error.$2['id']}',
+          authorization: token, data: {'status': 'em_analise'});
+      expect(updated.$1, 200);
+      expect(updated.$2['motivoErro'], isNull);
+      expect(
+          (await call('GET', '$path?status=em_analise', authorization: token))
+              .$2['total'],
+          1);
+      expect(
+          (await call('GET', '$path?status=invalido', authorization: token)).$1,
+          400);
+      expect((await call('DELETE', '$path/$id', authorization: token)).$1, 204);
+      expect((await call('GET', '$path/$id', authorization: token)).$1, 404);
+      expect(
+          (await call('GET', '/api/vagas/$vacancy', authorization: token))
+              .$2['indicadores']['candidatosIdeais'],
+          0);
+    });
+
+    test('importação CSV atômica, idempotência e autorização', () async {
+      Future<(int, dynamic)> csv(String source, String key,
+          {String? auth}) async {
+        final request = await client.postUrl(base.resolve('/api/importacoes'));
+        request.headers.set('authorization', 'Bearer ${auth ?? token}');
+        request.headers.set('content-type', 'text/csv; charset=utf-8');
+        request.headers.set('x-idempotency-key', key);
+        request.add(utf8.encode(source));
+        final response = await request.close();
+        return (
+          response.statusCode,
+          jsonDecode(await utf8.decoder.bind(response).join())
+        );
+      }
+
+      final vacancy = (await call('GET', '/api/vagas', authorization: token))
+          .$2['items'][0];
+      const header =
+          'cargo,perfilDesejado,clienteId,responsavelId,prazoInicial,prazoFinal,canais\n';
+      final row =
+          '"Cargo, CSV","Perfil com ""aspas""",${vacancy['clienteId']},${vacancy['responsavelId']},2026-11-01,2026-12-01,\n';
+      final before = (await call('GET', '/api/vagas', authorization: token))
+          .$2['total'] as int;
+      final created = await csv('$header$row', 'teste-importacao');
+      expect(created.$1, 201);
+      expect(created.$2['quantidade'], 1);
+      final batch = created.$2['id'];
+      expect((await csv('$header$row', 'teste-importacao')).$1, 200);
+      expect(
+          (await call('GET', '/api/vagas', authorization: token)).$2['total'],
+          before + 1);
+      expect(
+          (await call('GET', '/api/importacoes/$batch', authorization: token))
+              .$2['vagas'],
+          created.$2['vagas']);
+      expect(
+          (await csv('$header${row.replaceFirst('Cargo, CSV', 'Outro cargo')}',
+                  'teste-importacao'))
+              .$1,
+          409);
+      final invalid =
+          'Falha,Perfil,999999,${vacancy['responsavelId']},2026-11-01,2026-12-01,\n';
+      expect((await csv('$header$row$invalid', 'rollback')).$1, 400);
+      expect(
+          (await call('GET', '/api/vagas', authorization: token)).$2['total'],
+          before + 1);
+      expect(
+          (await db.one(
+                  "SELECT count(*) AS total FROM importacoes WHERE chave = 'rollback'"))![
+              'total'],
+          0);
+      expect((await csv('$header$row$row', 'duplicada')).$1, 400);
+      final roles =
+          (await call('GET', '/api/cargos', authorization: token)).$2['items'];
+      final account =
+          await call('POST', '/api/usuarios', authorization: token, data: {
+        'nome': 'Leitura',
+        'email': 'leitura@folks.test',
+        'senha': 'SomenteLeitura!2026',
+        'cargoId': roles.first['id']
+      });
+      expect(account.$1, 201);
+      final login = await call('POST', '/api/auth/login', data: {
+        'email': 'leitura@folks.test',
+        'senha': 'SomenteLeitura!2026'
+      });
+      final reader = login.$2['token'] as String;
+      expect((await csv('$header$row', 'proibida', auth: reader)).$1, 403);
+      expect(
+          (await call('PATCH', '/api/vagas/${vacancy['id']}',
+                  authorization: reader, data: {'cargo': 'Proibido'}))
+              .$1,
+          403);
+      expect(
+          (await call('POST', '/api/vagas/${vacancy['id']}/candidatos',
+                  authorization: reader,
+                  data: {'nome': 'Proibido', 'email': 'negado@folks.test'}))
+              .$1,
+          403);
+      expect(
+          (await call('GET', '/api/importacoes/$batch', authorization: reader))
+              .$1,
+          403);
+      final permissions =
+          (await call('GET', '/api/permissoes', authorization: token))
+              .$2['items'] as List;
+      int permission(String key) =>
+          permissions.singleWhere((p) => p['chave'] == key)['id'] as int;
+      await call('PATCH', '/api/usuarios/${account.$2['id']}',
+          authorization: token,
+          data: {
+            'permissoes': [permission('A')]
+          });
+      expect((await csv('$header$row', 'sem-cadastro', auth: reader)).$1, 403);
+      expect(
+          (await call('GET', '/api/importacoes/$batch', authorization: reader))
+              .$1,
+          404);
+      final concurrent = await Future.wait([
+        csv('$header$row', 'concorrente'),
+        csv('$header$row', 'concorrente'),
+      ]);
+      expect(concurrent.map((r) => r.$1).toList()..sort(), [200, 201]);
+      expect(concurrent[0].$2['id'], concurrent[1].$2['id']);
+      expect(
+          (await call('GET', '/api/vagas', authorization: token)).$2['total'],
+          before + 2);
+      await call('PATCH', '/api/usuarios/${account.$2['id']}',
+          authorization: token, data: {'permissoes': []});
+    });
+
+    test('dashboards e entregas: conclusão idempotente e novo ciclo', () async {
+      final source =
+          (await call('GET', '/api/tarefas/$taskId', authorization: token)).$2;
+      final created =
+          await call('POST', '/api/tarefas', authorization: token, data: {
+        for (final key in [
+          'titulo',
+          'descricao',
+          'projetoId',
+          'clienteId',
+          'cargo',
+          'responsavelId',
+          'prazoInicial',
+          'prazoFinal',
+          'prioridadeId'
+        ])
+          key: source[key],
+        'titulo': 'Entrega de teste',
+      });
+      expect(created.$1, 201);
+      final id = created.$2['id'];
+      final today = DateTime.now().toUtc().toIso8601String().substring(0, 10);
+      final filter =
+          '?dataInicial=$today&dataFinal=$today&projetoId=${source['projetoId']}';
+      final before = (await call('GET', '/api/dashboard/entregas$filter',
+              authorization: token))
+          .$2['total'] as int;
+      final config =
+          (await call('GET', '/api/configuracoes', authorization: token)).$2;
+      final statuses = config['kanban'] as List;
+      final last = statuses.last['id'];
+      final completions = await Future.wait([
+        call('PATCH', '/api/tarefas/$id/status',
+            authorization: token, data: {'statusId': last}),
+        call('PATCH', '/api/tarefas/$id/status',
+            authorization: token, data: {'statusId': last}),
+      ]);
+      expect(completions.map((r) => r.$1).toList(), [200, 200]);
+      expect(
+          (await call('GET', '/api/dashboard/entregas$filter',
+                  authorization: token))
+              .$2['total'],
+          before + 1);
+      await call('PATCH', '/api/tarefas/$id/status',
+          authorization: token, data: {'statusId': statuses.first['id']});
+      await call('PATCH', '/api/tarefas/$id/status',
+          authorization: token, data: {'statusId': last});
+      final delivery = await call('GET', '/api/dashboard/entregas$filter',
+          authorization: token);
+      expect(delivery.$2['total'], before + 2);
+      expect(delivery.$2['porDia'], isNotEmpty);
+      expect(delivery.$2['porResponsavel'], isNotEmpty);
+      final activities = await call('GET',
+          '/api/dashboard/atividades?dataInicial=2026-01-01&dataFinal=2026-12-31',
+          authorization: token);
+      expect(activities.$1, 200);
+      expect(activities.$2['total'], greaterThan(0));
+      expect(
+          (activities.$2['porEtapa'] as List)
+              .fold<int>(0, (sum, r) => sum + (r['total'] as int)),
+          activities.$2['total']);
+      expect(
+          (await call('GET',
+                  '/api/dashboard/entregas?dataInicial=2026-12-01&dataFinal=2026-11-01',
+                  authorization: token))
+              .$1,
+          400);
+      expect(
+          (await call('GET', '/api/dashboard/atividades?desconhecido=1',
+                  authorization: token))
+              .$1,
+          400);
+    });
+
+    test('edição de permissões aplica acesso sem elevar o operador', () async {
+      final permissions =
+          (await call('GET', '/api/permissoes', authorization: token))
+              .$2['items'] as List;
+      int permission(String key) =>
+          permissions.singleWhere((p) => p['chave'] == key)['id'] as int;
+      final roles =
+          (await call('GET', '/api/cargos', authorization: token)).$2['items'];
+      final operator =
+          await call('POST', '/api/usuarios', authorization: token, data: {
+        'nome': 'Editor restrito',
+        'email': 'editor@folks.test',
+        'senha': 'EditorTest!2026',
+        'cargoId': roles.first['id'],
+        'permissoes': [permission('F')],
+      });
+      final login = await call('POST', '/api/auth/login',
+          data: {'email': 'editor@folks.test', 'senha': 'EditorTest!2026'});
+      final editorToken = login.$2['token'] as String;
+      final target = (await call('GET', '/api/usuarios?busca=leitura',
+              authorization: token))
+          .$2['items'][0]['id'];
+      expect(
+          (await call('PATCH', '/api/usuarios/$target',
+                  authorization: editorToken,
+                  data: {
+                'cargoId': roles.last['id'],
+                'permissoes': [permission('C')]
+              }))
+              .$1,
+          403);
+      expect(
+          (await call('GET', '/api/usuarios?busca=leitura',
+                  authorization: token))
+              .$2['items'][0]['cargoId'],
+          roles.first['id']);
+      expect(
+          (await call('PATCH', '/api/usuarios/${operator.$2['id']}',
+                  authorization: editorToken,
+                  data: {
+                'permissoes': [permission('C')]
+              }))
+              .$1,
+          403);
+      expect(
+          (await call('PATCH', '/api/usuarios/$target',
+                  authorization: token,
+                  data: {
+                'permissoes': [permission('C')]
+              }))
+              .$1,
+          200);
+      final reader = await call('POST', '/api/auth/login', data: {
+        'email': 'leitura@folks.test',
+        'senha': 'SomenteLeitura!2026'
+      });
+      final readerToken = reader.$2['token'] as String;
+      expect(
+          (await call('POST', '/api/clientes',
+                  authorization: readerToken,
+                  data: {'empresa': 'Cliente autorizado'}))
+              .$1,
+          201);
+      expect(
+          (await call('PATCH', '/api/usuarios/$target',
+                  authorization: token, data: {'permissoes': []}))
+              .$1,
+          200);
+      expect(
+          (await call('POST', '/api/clientes',
+                  authorization: readerToken,
+                  data: {'empresa': 'Cliente recusado'}))
+              .$1,
+          403);
+    });
+
     test('todas as operações protegidas exigem autenticação', () async {
       const operations = <(String, String)>[
         ('POST', '/auth/logout'),
@@ -610,6 +996,17 @@ void main() {
         ('DELETE', '/tarefas/1/anexos/1'),
         ('GET', '/vagas'),
         ('POST', '/vagas'),
+        ('GET', '/vagas/1'),
+        ('PATCH', '/vagas/1'),
+        ('GET', '/vagas/1/candidatos'),
+        ('POST', '/vagas/1/candidatos'),
+        ('GET', '/vagas/1/candidatos/1'),
+        ('PATCH', '/vagas/1/candidatos/1'),
+        ('DELETE', '/vagas/1/candidatos/1'),
+        ('POST', '/importacoes'),
+        ('GET', '/importacoes/1'),
+        ('GET', '/dashboard/atividades'),
+        ('GET', '/dashboard/entregas'),
       ];
       for (final (method, path) in operations) {
         expect((await call(method, '/api$path')).$1, 401,

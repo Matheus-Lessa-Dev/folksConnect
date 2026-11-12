@@ -1,8 +1,11 @@
 # Backend Folks Connect
 
 Stack preservada: Dart, Shelf/Shelf Router e PostgreSQL 16. Os models originais
-continuam em `backend/lib/src/models`; as consultas ficam nos módulos sob
-`backend/lib/src`. O schema 001 permanece intacto; 002 acrescenta os dados
+continuam em `backend/lib/src/models`; as consultas ficam em `repositories/`,
+as regras em `services/`, a adaptação HTTP em `controllers/` e as rotas em
+`routes/api_routes.dart`. A composição fica em `application.dart`.
+Veja [arquitetura e novos fluxos](backend-camadas.md).
+O schema 001 permanece intacto; 002 acrescenta os dados
 operacionais e ajusta a nulabilidade necessária ao contrato. A migration 003
 ordena checklists legados e garante ordens únicas nas três configurações.
 
@@ -18,8 +21,8 @@ docker compose logs backend
 
 API: `http://localhost:8081/api`. Frontend: `http://localhost:8080`.
 `GET /api/health` consulta o banco, além de confirmar que o processo responde.
-O frontend deste checkout é apenas a tela inicial e não foi integrado nesta entrega;
-todos os fluxos do backend são acessíveis diretamente pelo Insomnia.
+As telas Flutter existentes ainda usam dados de demonstração em memória;
+os fluxos HTTP do backend são acessíveis diretamente pelo Insomnia.
 
 O backend aplica migrations em transação, com trava de migração e checksums,
 antes de aceitar requisições. Isso funciona tanto com volumes novos quanto com
@@ -83,7 +86,8 @@ O cadastro de usuário exige uma senha inicial de 12 a 128 caracteres, informada
 pelo operador. A entrega dessa senha ao usuário ocorre fora da API. Não há envio
 de credencial ou convite automático. O usuário pode definir outra senha pelo
 fluxo de recuperação. O perfil só aceita nome e e-mail; permissões são atribuídas
-no cadastro e a rota de edição de usuário aceita apenas cargo, conforme o escopo.
+no cadastro e podem ser substituídas pelo PATCH de usuário com permissão F.
+O operador só pode conceder permissões que possui; cargos não concedem acesso.
 
 ## Recuperação de senha
 

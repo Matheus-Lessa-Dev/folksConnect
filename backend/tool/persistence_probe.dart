@@ -14,10 +14,14 @@ Future<void> main(List<String> args) async {
   final client = HttpClient()..connectionTimeout = const Duration(seconds: 10);
   var token = '';
   Future<dynamic> call(String method, String path,
-      {Object? data, int status = 200}) async {
+      {Object? data, String? csv, String? importKey, int status = 200}) async {
     final request = await client.openUrl(method, Uri.parse('$root$path'));
     if (token.isNotEmpty) request.headers.set('authorization', 'Bearer $token');
-    if (data != null) {
+    if (csv != null) {
+      request.headers.set('content-type', 'text/csv; charset=utf-8');
+      request.headers.set('x-idempotency-key', importKey!);
+      request.add(utf8.encode(csv));
+    } else if (data != null) {
       request.headers.contentType = ContentType.json;
       request.write(jsonEncode(data));
     }
@@ -135,6 +139,26 @@ Future<void> main(List<String> args) async {
         'prazoFinal': '2026-12-03',
         'canais': [channel['id']]
       });
+      final candidate = await call('POST', '/vagas/${vacancy['id']}/candidatos',
+          status: 201,
+          data: {
+            'nome': 'Candidato persistido',
+            'email': 'probe$suffix@example.com',
+            'perfilIdeal': true
+          });
+      await call('PATCH', '/vagas/${vacancy['id']}', data: {
+        'cargo': 'Cargo editado persistido',
+        'etapaId': savedConfig['funil'].last['id']
+      });
+      await call('PATCH', '/tarefas/$taskId/status',
+          data: {'statusId': savedConfig['kanban'].last['id']});
+      final today = DateTime.now().toUtc().toIso8601String().substring(0, 10);
+      final deliveryPath =
+          '/dashboard/entregas?dataInicial=$today&dataFinal=$today&responsavelId=${user['id']}';
+      final csv =
+          'cargo,perfilDesejado,clienteId,responsavelId,prazoInicial,prazoFinal,canais\nImportada,Perfil de teste,${customer['id']},${user['id']},2026-11-03,2026-12-03,${channel['id']}\n';
+      final batch = await call('POST', '/importacoes',
+          status: 201, csv: csv, importKey: 'probe-$suffix');
       final state = {
         'token': token,
         'perfil': await call('GET', '/usuarios/me'),
@@ -142,7 +166,14 @@ Future<void> main(List<String> args) async {
         'usuario': user,
         'cliente': customer,
         'canal': channel,
-        'vaga': vacancy,
+        'vaga': await call('GET', '/vagas/${vacancy['id']}'),
+        'candidato': candidate,
+        'importacao': batch,
+        'csv': csv,
+        'chaveImportacao': 'probe-$suffix',
+        'vagaImportada': await call('GET', '/vagas/${batch['vagas'][0]}'),
+        'dashboardPath': deliveryPath,
+        'entregas': await call('GET', deliveryPath),
         'tarefa': await call('GET', '/tarefas/$taskId'),
         'anexoId': attachment,
         'removidoId': deleted,
@@ -151,7 +182,7 @@ Future<void> main(List<String> args) async {
       stateFile.parent.createSync(recursive: true);
       stateFile.writeAsStringSync(jsonEncode(state));
       stdout.writeln(
-          'PREPARE OK: usuário, cliente, canal, configurações, tarefa, avanço, checklist, anexo e vaga gravados por HTTP.');
+          'PREPARE OK: sessão, cadastros, tarefa, anexos, vaga editada, candidato, importação e entrega gravados por HTTP.');
       stdout.writeln(
           'Reinicie backend-e2e e execute verify. O token está somente no volume de testes.');
     } else {
@@ -178,7 +209,25 @@ Future<void> main(List<String> args) async {
       equal(users.single['id'], state['usuario']['id'], 'usuário');
       final vacancies = (await call(
           'GET', '/vagas?clienteId=${state['cliente']['id']}'))['items'];
-      equal(vacancies.single, state['vaga'], 'vaga e canais');
+      equal(vacancies.singleWhere((v) => v['id'] == state['vaga']['id']),
+          state['vaga'], 'vaga editada, canais e indicadores');
+      equal(
+          await call('GET',
+              '/vagas/${state['vaga']['id']}/candidatos/${state['candidato']['id']}'),
+          state['candidato'],
+          'candidato');
+      equal(await call('GET', '/importacoes/${state['importacao']['id']}'),
+          state['importacao'], 'importação');
+      equal(
+          await call('POST', '/importacoes',
+              csv: state['csv'] as String,
+              importKey: state['chaveImportacao'] as String),
+          state['importacao'],
+          'repetição idempotente após reinício');
+      equal(await call('GET', '/vagas/${state['vagaImportada']['id']}'),
+          state['vagaImportada'], 'vaga importada');
+      equal(await call('GET', state['dashboardPath'] as String),
+          state['entregas'], 'eventos de entrega');
       final request = await client.getUrl(
           Uri.parse('$root/tarefas/$taskId/anexos/${state['anexoId']}'));
       request.headers.set('authorization', 'Bearer $token');
@@ -191,7 +240,7 @@ Future<void> main(List<String> args) async {
       await call('GET', '/tarefas/$taskId/anexos/${state['removidoId']}',
           status: 404);
       stdout.writeln(
-          'VERIFY OK: sessão, perfil, usuário, cliente, canal, configurações, tarefa, status, avanço, checklist e vaga preservados.');
+          'VERIFY OK: sessão, cadastros, tarefa, vaga editada, indicadores, candidato, importação idempotente e entrega preservados.');
       stdout.writeln(
           'VERIFY OK: SHA-256 do download idêntico; anexo removido continua ausente.');
     }

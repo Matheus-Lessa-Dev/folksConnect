@@ -15,6 +15,9 @@ Aplicacoes disponiveis:
 - Backend: http://localhost:8081/api/health
 - PostgreSQL: localhost:5432
 
+Backend: [guia de execução](docs/backend.md), [rotas HTTP](docs/rotas-backend.md)
+e [organização em camadas e novos fluxos](docs/backend-camadas.md).
+
 Rotas do frontend:
 
 - `http://localhost:8080/login`: login.

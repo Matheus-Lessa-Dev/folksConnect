@@ -13,7 +13,7 @@ void main() {
       'name': 'Folks Connect API',
       'scope': 'collection',
       'description':
-          '35 endpoints. Inicie pelo Login e copie o token para o ambiente. Consulte docs/backend.md. IDs devem vir das respostas reais.'
+          '46 endpoints. Inicie pelo Login e copie o token para o ambiente. Consulte docs/backend.md e docs/backend-camadas.md. IDs devem vir das respostas reais.'
     },
     {
       '_id': 'env_folksconnect',
@@ -37,6 +37,10 @@ void main() {
         'etapaId': 2,
         'itemId': 1,
         'anexoId': 1,
+        'vagaId': 1,
+        'candidatoId': 1,
+        'importacaoId': 1,
+        'chaveImportacao': 'primeiro-lote',
         'tokenRecuperacao': '',
         'configuracoes':
             'COPIE AQUI O JSON COMPLETO DE GET /configuracoes ANTES DE USAR PUT',
@@ -59,6 +63,7 @@ void main() {
       String? raw,
       bool public = false,
       bool multipart = false,
+      bool csv = false,
       String description = ''}) {
     final folder = 'fld_folks_${group.substring(0, 2)}';
     if (!resources.any((r) => r['_id'] == folder)) {
@@ -95,15 +100,20 @@ void main() {
             }
           : data != null || raw != null
               ? {
-                  'mimeType': 'application/json',
+                  'mimeType': csv ? 'text/csv' : 'application/json',
                   'text': raw ?? pretty.convert(data)
                 }
               : {},
       'parameters': [],
       'headers': [
         if (!public) {'name': 'Authorization', 'value': 'Bearer {{ _.token }}'},
+        if (csv)
+          {'name': 'X-Idempotency-Key', 'value': '{{ _.chaveImportacao }}'},
         if (data != null || raw != null)
-          {'name': 'Content-Type', 'value': 'application/json'},
+          {
+            'name': 'Content-Type',
+            'value': csv ? 'text/csv; charset=utf-8' : 'application/json'
+          },
       ],
       'authentication': {},
       'metaSortKey': index,
@@ -247,7 +257,7 @@ void main() {
       '/tarefas/{{ _.tarefaId }}/anexos/{{ _.anexoId }}', 'Remover anexo');
   request('08 Vagas', 'GET', '/vagas?page=1&limit=20', 'Listar vagas',
       description:
-          'Filtros: clienteId, responsavelId, etapaId, canalId e busca. Indicadores sem fonte definida são nulos.');
+          'Filtros: clienteId, responsavelId, etapaId, canalId e busca. Indicadores são calculados dos candidatos vinculados.');
   request('08 Vagas', 'POST', '/vagas', 'Criar vaga', raw: '''{
   "cargo": "Desenvolvedor Sênior",
   "perfilDesejado": "Experiência com Dart e PostgreSQL",
@@ -258,17 +268,68 @@ void main() {
   "canais": [{{ _.canalId }}]
 }''');
 
+  request('08 Vagas', 'GET', '/vagas/{{ _.vagaId }}', 'Detalhes da vaga');
+  request('08 Vagas', 'PATCH', '/vagas/{{ _.vagaId }}', 'Editar vaga',
+      data: {'cargo': 'Analista de sistemas'},
+      description:
+          'Exige D. Campos do cadastro e etapaId; etapa só avança por ordem.');
+  request('09 Candidatos', 'GET', '/vagas/{{ _.vagaId }}/candidatos',
+      'Listar candidatos');
+  request('09 Candidatos', 'POST', '/vagas/{{ _.vagaId }}/candidatos',
+      'Cadastrar candidato',
+      data: {
+        'nome': 'Pessoa candidata',
+        'email': 'candidato@example.com',
+        'perfilIdeal': false
+      },
+      description:
+          'Exige C. Salve o id em candidatoId. E-mail único por vaga.');
+  request(
+      '09 Candidatos',
+      'GET',
+      '/vagas/{{ _.vagaId }}/candidatos/{{ _.candidatoId }}',
+      'Detalhes do candidato');
+  request(
+      '09 Candidatos',
+      'PATCH',
+      '/vagas/{{ _.vagaId }}/candidatos/{{ _.candidatoId }}',
+      'Atualizar candidato',
+      data: {'status': 'em_analise', 'perfilIdeal': true});
+  request(
+      '09 Candidatos',
+      'DELETE',
+      '/vagas/{{ _.vagaId }}/candidatos/{{ _.candidatoId }}',
+      'Remover candidato');
+  request('10 Importação', 'POST', '/importacoes', 'Importar vagas CSV',
+      csv: true,
+      raw:
+          'cargo,perfilDesejado,clienteId,responsavelId,prazoInicial,prazoFinal,canais\nAnalista,Experiência em Dart,{{ _.clienteId }},{{ _.responsavelId }},2026-11-01,2026-12-01,{{ _.canalId }}\n',
+      description:
+          'Exige A+C. Até 2 MiB/1000 vagas; lote atômico. Repita a chave para retomar o mesmo arquivo; mude para um lote novo.');
+  request('10 Importação', 'GET', '/importacoes/{{ _.importacaoId }}',
+      'Consultar importação');
+  request(
+      '11 Dashboard',
+      'GET',
+      '/dashboard/atividades?dataInicial=2026-01-01&dataFinal=2026-12-31',
+      'Atividades por status e etapa');
+  request(
+      '11 Dashboard',
+      'GET',
+      '/dashboard/entregas?dataInicial=2026-01-01&dataFinal=2026-12-31',
+      'Entregas por dia e responsável');
+
   final output = File('../docs/insomnia/folks-connect.json');
   output.parent.createSync(recursive: true);
   output.writeAsStringSync('${pretty.convert({
         '_type': 'export',
         '__export_format': 4,
-        '__export_date': '2026-11-03T00:00:00.000Z',
+        '__export_date': '2026-11-09T00:00:00.000Z',
         '__export_source': 'folks-connect-backend',
         'resources': resources
       })}\n');
   stdout.writeln('Coleção gerada: $index requisições.');
-  if (index != 35) {
-    throw StateError('A coleção deve conter todos os 35 endpoints.');
+  if (index != 46) {
+    throw StateError('A coleção deve conter todos os 46 endpoints.');
   }
 }
