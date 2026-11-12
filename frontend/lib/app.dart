@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'core/theme/folks_theme.dart';
 import 'features/auth/authentication_service.dart';
 import 'features/auth/login_screen.dart';
+import 'features/dashboard/dashboard_screen.dart';
 import 'features/kanban/kanban_controller.dart';
 import 'features/kanban/kanban_screen.dart';
 import 'features/settings/settings_controller.dart';
@@ -28,7 +29,12 @@ class FolksConnectApp extends StatefulWidget {
 }
 
 class _FolksConnectAppState extends State<FolksConnectApp> {
-  static const _workspaceRoutes = {'/kanban', '/funil-vagas', '/configuracoes'};
+  static const _workspaceRoutes = {
+    '/kanban',
+    '/dashboard',
+    '/funil-vagas',
+    '/configuracoes',
+  };
   bool _authenticated = false;
 
   late final _router = GoRouter(
@@ -74,6 +80,12 @@ class _FolksConnectAppState extends State<FolksConnectApp> {
             builder: (context, state) => KanbanScreen(
               controller: _WorkspaceScope.of(context)._kanban,
               onSignOut: _signOut,
+            ),
+          ),
+          GoRoute(
+            path: '/dashboard',
+            builder: (context, state) => DashboardScreen(
+              controller: _WorkspaceScope.of(context)._kanban,
             ),
           ),
           GoRoute(
