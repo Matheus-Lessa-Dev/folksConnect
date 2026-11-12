@@ -28,7 +28,47 @@ class FolksNavigation extends StatelessWidget {
   );
 
   @override
-  Widget build(BuildContext context) => DecoratedBox(
+  Widget build(BuildContext context) => Stack(
+    children: [
+      Padding(padding: const EdgeInsets.only(top: 24), child: _bar(context)),
+      Positioned(
+        top: 0,
+        left: 0,
+        right: 0,
+        child: Center(child: _dashboardButton(context)),
+      ),
+    ],
+  );
+
+  Widget _dashboardButton(BuildContext context) {
+    final selected = selectedRoute == '/dashboard';
+    return Semantics(
+      selected: selected,
+      child: Material(
+        color: FolksColors.brandOrange,
+        elevation: 4,
+        shadowColor: const Color(0x54FF671D),
+        shape: CircleBorder(
+          side: BorderSide(
+            color: selected ? FolksColors.white : FolksColors.boardOrange,
+            width: selected ? 2 : 1,
+          ),
+        ),
+        child: SizedBox.square(
+          dimension: 62,
+          child: IconButton(
+            tooltip: 'Dashboard',
+            onPressed: () {
+              if (!selected) context.go('/dashboard');
+            },
+            icon: const FolksMark(),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _bar(BuildContext context) => DecoratedBox(
     decoration: const BoxDecoration(
       color: FolksColors.navigation,
       borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
@@ -41,7 +81,7 @@ class FolksNavigation extends StatelessWidget {
             : 0,
       ),
       child: SizedBox(
-        height: 72,
+        height: 48,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
@@ -52,28 +92,7 @@ class FolksNavigation extends StatelessWidget {
               icon: Icon(Icons.home_rounded),
             ),
             _destination(context, '/kanban', 'Kanban', Icons.assignment),
-            Transform.translate(
-              offset: const Offset(0, -36),
-              child: Container(
-                width: 62,
-                height: 62,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: FolksColors.brandOrange,
-                  border: Border.fromBorderSide(
-                    BorderSide(color: Color(0xFFF86117)),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Color(0x54FF671D),
-                      blurRadius: 4,
-                      offset: Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: const Center(child: FolksMark()),
-              ),
-            ),
+            const SizedBox(width: 62),
             _destination(
               context,
               '/funil-vagas',
