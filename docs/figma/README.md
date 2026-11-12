@@ -26,7 +26,7 @@ As regras permanentes do projeto estao em `AGENTS.md`.
 - Usuario e senha obrigatorios, senha oculta, suporte a colagem/autofill e acao de teclado.
 - `AuthenticationService` e a fronteira de integracao. O backend atual so oferece `/api` e `/api/health`; nao existe login nem recuperacao de senha.
 - O aplicativo usa `DemoAuthenticationService`, por solicitacao do usuario, para o acesso local `joabe@gmail.com` / `12345`. Outras credenciais sao recusadas com "E-mail ou senha incorretos.".
-- A conta de demonstracao abre o Kanban e mantem o acesso apenas em memoria. Recarregar a pagina ou usar "Sair" retorna ao login. Nao cria sessao no servidor nem concede acesso a dados reais.
+- A conta de demonstracao abre a [Tela Inicial](../tela-inicial.md) e mantem o acesso apenas em memoria. Recarregar a pagina ou usar "Sair" retorna ao login. Nao cria sessao no servidor nem concede acesso a dados reais.
 - `UnavailableAuthenticationService` continua disponivel como fallback para consumidores sem servico configurado. Substituir o servico de demonstracao quando a API real estiver definida.
 - O Kanban inicial apresenta filtros, modos quadro/lista e as etapas do Figma em estado vazio. Cadastro e persistencia de tarefas nao fazem parte deste acesso de demonstracao.
 - Nao registrar senhas nem salva-las em armazenamento local. O campo de senha e limpo apos autenticacao bem-sucedida.

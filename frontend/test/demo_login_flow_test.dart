@@ -5,6 +5,7 @@ import 'package:frontend/app.dart';
 import 'package:frontend/core/theme/folks_theme.dart';
 import 'package:frontend/features/auth/authentication_service.dart';
 import 'package:frontend/features/auth/login_screen.dart';
+import 'package:frontend/features/home/home_screen.dart';
 import 'package:frontend/features/kanban/kanban_controller.dart';
 import 'package:frontend/features/kanban/kanban_screen.dart';
 import 'package:frontend/features/splash/splash_screen.dart';
@@ -49,7 +50,7 @@ void main() {
   );
 
   testWidgets(
-    'login correto abre Kanban e sair retorna a um formulario limpo',
+    'login correto abre início e sair pelo Kanban retorna a um formulario limpo',
     (tester) async {
       await _openLogin(tester);
       await tester.enterText(
@@ -58,6 +59,10 @@ void main() {
       );
       await tester.enterText(find.byType(TextFormField).at(1), '12345');
       await tester.tap(find.text('Entrar'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(HomeScreen), findsOneWidget);
+      await tester.tap(find.byTooltip('Kanban'));
       await tester.pumpAndSettle();
 
       expect(find.byType(KanbanScreen), findsOneWidget);

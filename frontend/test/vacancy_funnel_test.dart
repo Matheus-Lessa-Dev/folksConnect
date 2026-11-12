@@ -202,6 +202,8 @@ void main() {
     tester,
   ) async {
     await openAuthenticatedWorkspace(tester);
+    await tester.tap(find.byTooltip('Kanban'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Lista'));
     await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('Funil de Vagas'));
