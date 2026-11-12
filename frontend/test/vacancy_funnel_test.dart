@@ -62,6 +62,29 @@ Future<void> openAuthenticatedWorkspace(WidgetTester tester) async {
 }
 
 void main() {
+  testWidgets('tocar em uma vaga abre os dados cadastrados e salva o perfil', (
+    tester,
+  ) async {
+    final controller = VacancyFunnelController();
+    addTearDown(controller.dispose);
+    final vacancy = controller.vacancies.first;
+    await mount(tester, controller);
+    await tapVisible(tester, find.byKey(ValueKey('vacancy-${vacancy.id}')));
+
+    expect(find.text('Recrutamento — ${vacancy.role}'), findsOneWidget);
+    expect(find.text('PRAZO ESTIMADO'), findsOneWidget);
+    expect(find.text('Início:'), findsOneWidget);
+    expect(find.text('Fim:'), findsOneWidget);
+    expect(find.text('Candidatos inscritos'), findsOneWidget);
+
+    final profile = find.byType(TextFormField);
+    await tester.ensureVisible(profile);
+    await tester.enterText(profile, 'Perfil revisado para a vaga.');
+    await tapVisible(tester, find.text('Salvar'));
+    expect(controller.vacancies.first.profile, 'Perfil revisado para a vaga.');
+    expect(controller.vacancies.first.applicants, vacancy.applicants);
+  });
+
   test('prazo considera o dia inteiro e os limites de três dias', () {
     final now = DateTime(2026, 10, 26, 23, 59);
     FunnelVacancy vacancy(DateTime end) => FunnelVacancy(
@@ -126,6 +149,9 @@ void main() {
     expect(find.text('Nenhuma vaga cadastrada.'), findsOneWidget);
     await tester.tap(find.text('+ Vaga'));
     await tester.pumpAndSettle();
+    expect(find.text('Início:'), findsOneWidget);
+    expect(find.text('Fim:'), findsOneWidget);
+    expect(find.text('01/01/2000'), findsNWidgets(2));
     await tapVisible(tester, find.text('Cadastrar Vagas'));
     expect(controller.vacancies, isEmpty);
     expect(find.text('Informe o cargo da vaga.'), findsOneWidget);

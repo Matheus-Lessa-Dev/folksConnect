@@ -26,6 +26,39 @@ class VacancyFunnelController extends ChangeNotifier {
   List<FunnelVacancy> get vacancies => List.unmodifiable(_vacancies);
   List<VacancyClient> get clients => List.unmodifiable(_clients);
 
+  void updateDetails(
+    FunnelVacancy vacancy, {
+    required DateTime start,
+    required DateTime end,
+    required String profile,
+    required List<String> channels,
+  }) {
+    final index = _vacancies.indexWhere((item) => item.id == vacancy.id);
+    if (index == -1) return;
+    if (end.isBefore(start)) {
+      throw ArgumentError('O fim deve ser igual ou posterior ao início.');
+    }
+    if (profile.trim().isEmpty) {
+      throw ArgumentError('Informe o perfil desejado.');
+    }
+    final current = _vacancies[index];
+    _vacancies[index] = FunnelVacancy(
+      id: current.id,
+      role: current.role,
+      company: current.company,
+      assignee: current.assignee,
+      stage: current.stage,
+      applicants: current.applicants,
+      idealPercentage: current.idealPercentage,
+      screeningErrors: current.screeningErrors,
+      start: start,
+      end: end,
+      profile: profile.trim(),
+      channels: List.unmodifiable(channels),
+    );
+    notifyListeners();
+  }
+
   void addClient(VacancyClient client) {
     if (client.company.trim().isEmpty) {
       throw ArgumentError('Informe a empresa.');

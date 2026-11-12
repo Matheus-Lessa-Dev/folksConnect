@@ -6,6 +6,7 @@ import '../kanban/widgets/kanban_widgets.dart';
 import 'vacancy.dart';
 import 'vacancy_funnel_controller.dart';
 import 'widgets/new_vacancy_sheet.dart';
+import 'widgets/vacancy_details_sheet.dart';
 
 class VacancyFunnelScreen extends StatefulWidget {
   const VacancyFunnelScreen({super.key, this.controller, this.onSignOut});
@@ -35,6 +36,11 @@ class _VacancyFunnelScreenState extends State<VacancyFunnelScreen> {
       const SnackBar(content: Text('Vaga cadastrada nesta sessão.')),
     );
   }
+
+  void _open(FunnelVacancy vacancy) => showFolksSheet<void>(
+    context,
+    VacancyDetailsSheet(controller: _controller, vacancy: vacancy),
+  );
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -106,7 +112,10 @@ class _VacancyFunnelScreenState extends State<VacancyFunnelScreen> {
                       alignment: Alignment.topCenter,
                       child: ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 700),
-                        child: _VacancyCard(vacancies[index]),
+                        child: _VacancyCard(
+                          vacancies[index],
+                          onTap: () => _open(vacancies[index]),
+                        ),
                       ),
                     ),
                   );
@@ -122,8 +131,9 @@ class _VacancyFunnelScreenState extends State<VacancyFunnelScreen> {
 }
 
 class _VacancyCard extends StatelessWidget {
-  const _VacancyCard(this.vacancy);
+  const _VacancyCard(this.vacancy, {required this.onTap});
   final FunnelVacancy vacancy;
+  final VoidCallback onTap;
 
   Widget _metric(String value, String label) => Expanded(
     child: Column(
@@ -155,69 +165,77 @@ class _VacancyCard extends StatelessWidget {
     final age = days < 0
         ? 'início em ${-days} ${days == -1 ? 'dia' : 'dias'}'
         : 'aberta há $days ${days == 1 ? 'dia' : 'dias'}';
-    return Container(
+    return Material(
       key: ValueKey('vacancy-${vacancy.id}'),
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: FolksColors.card,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(10),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Ink(
+          decoration: BoxDecoration(
+            color: FolksColors.card,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: Text(
-                  vacancy.role,
-                  style: FolksTheme.heading.copyWith(fontSize: 18),
-                ),
-              ),
-              const SizedBox(width: 8),
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 112),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: .15),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Text(
-                    deadline.label,
-                    style: TextStyle(
-                      color: color,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Text(
+                      vacancy.role,
+                      style: FolksTheme.heading.copyWith(fontSize: 18),
                     ),
                   ),
-                ),
+                  const SizedBox(width: 8),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 112),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: .15),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Text(
+                        deadline.label,
+                        style: TextStyle(
+                          color: color,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Cliente: ${vacancy.company} · $age',
+                style: const TextStyle(color: FolksColors.muted, fontSize: 10),
+              ),
+              const SizedBox(height: 12),
+              Pipeline(vacancy.stage),
+              const SizedBox(height: 12),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _metric('${vacancy.applicants}', 'INSCRITOS'),
+                  const SizedBox(width: 8),
+                  _metric('${vacancy.idealPercentage}%', 'CANDIDATOS IDEAIS'),
+                  const SizedBox(width: 8),
+                  _metric('${vacancy.screeningErrors}', 'ERROS TRIAGEM'),
+                ],
               ),
             ],
           ),
-          const SizedBox(height: 4),
-          Text(
-            'Cliente: ${vacancy.company} · $age',
-            style: const TextStyle(color: FolksColors.muted, fontSize: 10),
-          ),
-          const SizedBox(height: 12),
-          Pipeline(vacancy.stage),
-          const SizedBox(height: 12),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _metric('${vacancy.applicants}', 'INSCRITOS'),
-              const SizedBox(width: 8),
-              _metric('${vacancy.idealPercentage}%', 'CANDIDATOS IDEAIS'),
-              const SizedBox(width: 8),
-              _metric('${vacancy.screeningErrors}', 'ERROS TRIAGEM'),
-            ],
-          ),
-        ],
+        ),
       ),
     );
   }
