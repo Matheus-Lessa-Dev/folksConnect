@@ -18,6 +18,7 @@ O Figma foi consultado pelo MCP do Playwright:
 
 - Rota autenticada `/funil-vagas`, acessível pelo ícone do funil na navegação inferior.
 - Cartões com cargo, cliente, tempo desde a abertura, prazo, etapas e indicadores.
+- Detalhes da vaga ao tocar no cartão, com edição do prazo, perfil e canais.
 - Cadastro de cargo, cliente, perfil desejado, responsável, período e canais.
 - Novo cliente com empresa, CNPJ, representante, contato e e-mail. A empresa é
   obrigatória; o e-mail, quando informado, deve ter formato válido.
@@ -34,8 +35,7 @@ alvos de toque maiores que os elementos compactos do desenho.
 
 Os dados são demonstrativos e ficam **somente em memória**. Recarregar restaura
 os exemplos. Não há integração com API, banco, divulgação real ou candidatos.
-Os indicadores de uma nova vaga começam zerados na etapa Triagem. Os cartões
-são informativos: não foi inventado um fluxo de edição ou movimentação.
+Os indicadores de uma nova vaga começam zerados na etapa Triagem.
 
 Como regra provisória de apresentação, o prazo é atrasado depois do dia final;
 até três dias antes do vencimento, inclusive o dia final, aparece “Perto de

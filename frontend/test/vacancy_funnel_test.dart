@@ -62,6 +62,44 @@ Future<void> openAuthenticatedWorkspace(WidgetTester tester) async {
 }
 
 void main() {
+  testWidgets('tocar em uma vaga abre os dados cadastrados e salva o perfil', (
+    tester,
+  ) async {
+    final controller = VacancyFunnelController();
+    addTearDown(controller.dispose);
+    final vacancy = controller.vacancies.first;
+    await mount(tester, controller);
+    await tapVisible(tester, find.byKey(ValueKey('vacancy-${vacancy.id}')));
+
+    expect(find.text('Recrutamento — ${vacancy.role}'), findsOneWidget);
+    expect(find.text('PRAZO ESTIMADO'), findsOneWidget);
+    expect(find.text('Início:'), findsOneWidget);
+    expect(find.text('Fim:'), findsOneWidget);
+    expect(find.text('Candidatos inscritos'), findsOneWidget);
+    String dateText(DateTime date) => '${shortDate(date)}/${date.year}';
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('vacancy-start')),
+        matching: find.text(dateText(vacancy.start)),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('vacancy-end')),
+        matching: find.text(dateText(vacancy.end)),
+      ),
+      findsOneWidget,
+    );
+
+    final profile = find.byType(TextFormField);
+    await tester.ensureVisible(profile);
+    await tester.enterText(profile, 'Perfil revisado para a vaga.');
+    await tapVisible(tester, find.text('Salvar'));
+    expect(controller.vacancies.first.profile, 'Perfil revisado para a vaga.');
+    expect(controller.vacancies.first.applicants, vacancy.applicants);
+  });
+
   test('prazo considera o dia inteiro e os limites de três dias', () {
     final now = DateTime(2026, 10, 26, 23, 59);
     FunnelVacancy vacancy(DateTime end) => FunnelVacancy(
@@ -126,6 +164,18 @@ void main() {
     expect(find.text('Nenhuma vaga cadastrada.'), findsOneWidget);
     await tester.tap(find.text('+ Vaga'));
     await tester.pumpAndSettle();
+    expect(find.text('Início:'), findsOneWidget);
+    expect(find.text('Fim:'), findsOneWidget);
+    expect(find.text('01/01/2000'), findsNWidgets(2));
+    for (final (label, key) in [
+      ('Início:', 'vacancy-start'),
+      ('Fim:', 'vacancy-end'),
+    ]) {
+      expect(
+        tester.getTopRight(find.text(label)).dx,
+        lessThan(tester.getTopLeft(find.byKey(Key(key))).dx),
+      );
+    }
     await tapVisible(tester, find.text('Cadastrar Vagas'));
     expect(controller.vacancies, isEmpty);
     expect(find.text('Informe o cargo da vaga.'), findsOneWidget);
@@ -139,7 +189,25 @@ void main() {
     );
     await tester.tap(find.text('+ Novo Cliente').last);
     await tester.pumpAndSettle();
-    await tapVisible(tester, find.byKey(const ValueKey('client-Empresa')));
+    final companyField = find.byKey(const ValueKey('client-Empresa'));
+    await tapVisible(tester, companyField);
+    final input = tester.widget<EditableText>(
+      find.descendant(of: companyField, matching: find.byType(EditableText)),
+    );
+    final decorator = tester.widget<InputDecorator>(
+      find.descendant(of: companyField, matching: find.byType(InputDecorator)),
+    );
+    expect(input.focusNode.hasFocus, isTrue);
+    expect(input.style.color, Colors.black);
+    expect(input.style.fontWeight, FontWeight.bold);
+    expect(
+      WidgetStateProperty.resolveAs(decorator.decoration.fillColor!, {
+        WidgetState.focused,
+      }),
+      Colors.white,
+    );
+    expect(decorator.decoration.floatingLabelStyle?.color, Colors.white);
+    expect(decorator.decoration.floatingLabelStyle?.shadows, isNotEmpty);
     await tester.enterText(
       find.byKey(const ValueKey('client-Empresa')),
       'Empresa Exemplo',

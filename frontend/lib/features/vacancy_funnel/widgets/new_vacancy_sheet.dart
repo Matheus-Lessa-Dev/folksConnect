@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/folks_theme.dart';
-import '../../kanban/task.dart';
 import '../../kanban/widgets/kanban_widgets.dart';
 import '../vacancy.dart';
 import '../vacancy_funnel_controller.dart';
+import 'vacancy_deadline_fields.dart';
 
 class NewVacancySheet extends StatefulWidget {
   const NewVacancySheet({super.key, required this.controller});
@@ -36,16 +36,10 @@ class _NewVacancySheetState extends State<NewVacancySheet> {
   }
 
   Future<void> _pickDate(bool start) async {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final date = await showDatePicker(
-      context: context,
-      initialDate: (start ? _start : _end) ?? _start ?? today,
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2100),
-      helpText: start ? 'Prazo inicial' : 'Prazo final',
-      cancelText: 'Cancelar',
-      confirmText: 'Selecionar',
+    final date = await pickVacancyDate(
+      context,
+      start: start,
+      initialDate: (start ? _start : _end) ?? _start,
     );
     if (!mounted || date == null) return;
     setState(() {
@@ -246,34 +240,11 @@ class _NewVacancySheetState extends State<NewVacancySheet> {
             onChanged: (value) => setState(() => _assignee = value!),
           ),
         ),
-        FieldLabel(
-          'Prazo estimado',
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Wrap(
-                spacing: 12,
-                runSpacing: 8,
-                children: [
-                  OutlinedButton(
-                    key: const Key('vacancy-start'),
-                    onPressed: () => _pickDate(true),
-                    child: Text(
-                      'Início: ${_start == null ? '/ /' : shortDate(_start!)}',
-                    ),
-                  ),
-                  OutlinedButton(
-                    key: const Key('vacancy-end'),
-                    onPressed: () => _pickDate(false),
-                    child: Text(
-                      'Fim: ${_end == null ? '/ /' : shortDate(_end!)}',
-                    ),
-                  ),
-                ],
-              ),
-              if (_dateError != null) _ErrorText(_dateError!),
-            ],
-          ),
+        VacancyDeadlineFields(
+          start: _start,
+          end: _end,
+          error: _dateError,
+          onPick: _pickDate,
         ),
         FieldLabel(
           'Canal de divulgação',
@@ -391,7 +362,32 @@ class _NewClientFormState extends State<_NewClientForm> {
               child: TextFormField(
                 key: ValueKey('client-${field.key}'),
                 controller: field.value,
-                decoration: InputDecoration(labelText: field.key),
+                style: WidgetStateTextStyle.resolveWith(
+                  (states) => states.contains(WidgetState.focused)
+                      ? const TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                        )
+                      : const TextStyle(color: FolksColors.white),
+                ),
+                decoration: InputDecoration(
+                  labelText: field.key,
+                  fillColor: WidgetStateColor.resolveWith(
+                    (states) => states.contains(WidgetState.focused)
+                        ? FolksColors.white
+                        : FolksColors.field,
+                  ),
+                  floatingLabelStyle: const TextStyle(
+                    color: FolksColors.white,
+                    fontWeight: FontWeight.bold,
+                    shadows: [
+                      Shadow(color: Colors.black, offset: Offset(-1, 0)),
+                      Shadow(color: Colors.black, offset: Offset(1, 0)),
+                      Shadow(color: Colors.black, offset: Offset(0, -1)),
+                      Shadow(color: Colors.black, offset: Offset(0, 1)),
+                    ],
+                  ),
+                ),
                 keyboardType: field.key == 'Email'
                     ? TextInputType.emailAddress
                     : field.key == 'Contato'
