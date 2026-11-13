@@ -7,6 +7,7 @@ import 'core/theme/folks_theme.dart';
 import 'features/auth/authentication_service.dart';
 import 'features/auth/login_screen.dart';
 import 'features/dashboard/dashboard_screen.dart';
+import 'features/home/home_screen.dart';
 import 'features/kanban/kanban_controller.dart';
 import 'features/kanban/kanban_screen.dart';
 import 'features/settings/settings_controller.dart';
@@ -29,7 +30,9 @@ class FolksConnectApp extends StatefulWidget {
 }
 
 class _FolksConnectAppState extends State<FolksConnectApp> {
+  static const _homeRoute = '/inicio';
   static const _workspaceRoutes = {
+    _homeRoute,
     '/kanban',
     '/dashboard',
     '/funil-vagas',
@@ -46,9 +49,11 @@ class _FolksConnectAppState extends State<FolksConnectApp> {
           queryParameters: {'redirect': path},
         ).toString();
       }
-      if (path == '/login' && _authenticated) return '/kanban';
+      if (_authenticated && (path == '/' || path == '/login')) {
+        return _homeRoute;
+      }
       if (path != '/' && path != '/login' && !_workspaceRoutes.contains(path)) {
-        return _authenticated ? '/kanban' : '/login';
+        return _authenticated ? _homeRoute : '/login';
       }
       return null;
     },
@@ -66,7 +71,9 @@ class _FolksConnectAppState extends State<FolksConnectApp> {
             _authenticated = true;
             final destination = state.uri.queryParameters['redirect'];
             context.go(
-              _workspaceRoutes.contains(destination) ? destination! : '/kanban',
+              _workspaceRoutes.contains(destination)
+                  ? destination!
+                  : _homeRoute,
             );
           },
         ),
@@ -75,6 +82,11 @@ class _FolksConnectAppState extends State<FolksConnectApp> {
         builder: (context, state, child) =>
             _AuthenticatedWorkspace(child: child),
         routes: [
+          GoRoute(
+            path: _homeRoute,
+            builder: (context, state) =>
+                HomeScreen(controller: _WorkspaceScope.of(context)._kanban),
+          ),
           GoRoute(
             path: '/kanban',
             builder: (context, state) => KanbanScreen(

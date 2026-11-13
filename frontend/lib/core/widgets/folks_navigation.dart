@@ -85,12 +85,7 @@ class FolksNavigation extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            const IconButton(
-              tooltip: 'Início (em breve)',
-              onPressed: null,
-              disabledColor: FolksColors.white,
-              icon: Icon(Icons.home_rounded),
-            ),
+            _destination(context, '/inicio', 'Início', Icons.home_rounded),
             _destination(context, '/kanban', 'Kanban', Icons.assignment),
             const SizedBox(width: 62),
             _destination(
