@@ -28,6 +28,9 @@ class SettingsUser {
 /// Os papeis nao concedem autorizacao no backend.
 class SettingsController extends ChangeNotifier {
   static const roles = ['Assistente', 'Gerente', 'Analista', 'Diretor'];
+  static const defaultProfileName = 'Joabe';
+  static const defaultProfileEmail = 'joabe@gmail.com';
+  static const defaultProfileRole = 'Analista';
   static const availablePermissions = [
     'Importar Planilha',
     'Cadastrar Tarefas',
@@ -43,9 +46,38 @@ class SettingsController extends ChangeNotifier {
     'Editar Etapas do CheckList',
   ];
 
-  String profileName = '';
-  String profileEmail = '';
-  String? profileRole;
+  SettingsController({
+    String profileName = defaultProfileName,
+    String profileEmail = defaultProfileEmail,
+    String? profileRole = defaultProfileRole,
+  })  : _profileName = profileName,
+        _profileEmail = profileEmail,
+        _profileRole = profileRole;
+
+  String _profileName;
+  String _profileEmail;
+  String? _profileRole;
+
+  String get profileName => _profileName;
+  set profileName(String value) {
+    if (_profileName == value) return;
+    _profileName = value;
+    notifyListeners();
+  }
+
+  String get profileEmail => _profileEmail;
+  set profileEmail(String value) {
+    if (_profileEmail == value) return;
+    _profileEmail = value;
+    notifyListeners();
+  }
+
+  String? get profileRole => _profileRole;
+  set profileRole(String? value) {
+    if (_profileRole == value) return;
+    _profileRole = value;
+    notifyListeners();
+  }
   int _nextId = 5;
   List<SettingsUser> _users = [
     SettingsUser(

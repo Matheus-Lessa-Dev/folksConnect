@@ -95,27 +95,30 @@ class _NewTaskSheetState extends State<NewTaskSheet> {
     ValueChanged<String> change,
   ) => FieldLabel(
     label,
-    child: DropdownButtonFormField<String>(
+    child: KeyedSubtree(
       key: ValueKey('field-$label'),
-      initialValue: value,
-      isExpanded: true,
-      decoration: InputDecoration(
-        hintText: 'Selecionar',
-        semanticCounterText: label,
+      child: DropdownButtonFormField<String>(
+        key: ValueKey('dropdown-$label-$value'),
+        initialValue: options.contains(value) ? value : null,
+        isExpanded: true,
+        decoration: InputDecoration(
+          hintText: 'Selecionar',
+          semanticCounterText: label,
+        ),
+        items: options
+            .map(
+              (item) => DropdownMenuItem(
+                value: item,
+                child: Text(item, style: const TextStyle(fontSize: 13)),
+              ),
+            )
+            .toList(),
+        onChanged: (item) {
+          if (item != null) setState(() => change(item));
+        },
+        validator: (item) =>
+            item == null ? 'Selecione ${label.toLowerCase()}.' : null,
       ),
-      items: options
-          .map(
-            (item) => DropdownMenuItem(
-              value: item,
-              child: Text(item, style: const TextStyle(fontSize: 13)),
-            ),
-          )
-          .toList(),
-      onChanged: (item) {
-        if (item != null) setState(() => change(item));
-      },
-      validator: (item) =>
-          item == null ? 'Selecione ${label.toLowerCase()}.' : null,
     ),
   );
 
@@ -152,14 +155,38 @@ class _NewTaskSheetState extends State<NewTaskSheet> {
         _select(
           'Empresa',
           _company,
-          KanbanController.companies,
-          (value) => _company = value,
+          widget.controller.companies,
+          (value) {
+            _company = value;
+            final vacancy = widget.controller.findVacancy(company: value);
+            if (vacancy != null && _role == null) {
+              _role = vacancy.role;
+              _assignee = KanbanController.normalizeAssignee(vacancy.assignee);
+              _start ??= vacancy.start;
+              _end ??= vacancy.end;
+              if (_title.text.trim().isEmpty) {
+                _title.text = 'Triagem — ${vacancy.role}';
+              }
+            }
+          },
         ),
         _select(
           'Cargo',
           _role,
-          KanbanController.roles,
-          (value) => _role = value,
+          widget.controller.roles,
+          (value) {
+            _role = value;
+            final vacancy = widget.controller.findVacancy(role: value);
+            if (vacancy != null) {
+              _company ??= vacancy.company;
+              _assignee = KanbanController.normalizeAssignee(vacancy.assignee);
+              _start ??= vacancy.start;
+              _end ??= vacancy.end;
+              if (_title.text.trim().isEmpty) {
+                _title.text = 'Triagem — ${vacancy.role}';
+              }
+            }
+          },
         ),
         _select(
           'Responsável',

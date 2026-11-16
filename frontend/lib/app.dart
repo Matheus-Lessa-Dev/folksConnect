@@ -165,9 +165,16 @@ class _AuthenticatedWorkspace extends StatefulWidget {
 }
 
 class _AuthenticatedWorkspaceState extends State<_AuthenticatedWorkspace> {
-  final _kanban = KanbanController();
-  final _funnel = VacancyFunnelController();
+  late final VacancyFunnelController _funnel;
+  late final KanbanController _kanban;
   final _settings = SettingsController();
+
+  @override
+  void initState() {
+    super.initState();
+    _funnel = VacancyFunnelController();
+    _kanban = KanbanController(funnel: _funnel);
+  }
 
   @override
   void dispose() {

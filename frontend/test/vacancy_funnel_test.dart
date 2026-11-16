@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frontend/core/theme/folks_theme.dart';
 import 'package:frontend/features/settings/settings_screen.dart';
+import 'package:frontend/features/kanban/kanban_screen.dart';
 import 'package:frontend/features/kanban/task.dart';
 import 'package:frontend/features/vacancy_funnel/vacancy.dart';
 import 'package:frontend/features/vacancy_funnel/vacancy_funnel_controller.dart';
@@ -252,6 +253,74 @@ void main() {
     );
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets(
+    'cadastro de vaga direciona tarefa ao Kanban em A fazer e exibe no modal Nova Tarefa',
+    (tester) async {
+      await openAuthenticatedWorkspace(tester);
+      await tester.tap(find.byTooltip('Funil de Vagas'));
+      await tester.pumpAndSettle();
+
+      final funnel = tester
+          .widget<VacancyFunnelScreen>(find.byType(VacancyFunnelScreen))
+          .controller!;
+      funnel.addClient(const VacancyClient(company: 'Folks'));
+      final today = DateTime.now();
+      funnel.add(
+        role: 'Vaga para Desenvolvedor',
+        company: 'Folks',
+        profile: 'Desenvolvedor Dart e Flutter',
+        assignee: 'Eduarda - Analista',
+        start: today,
+        end: today.add(const Duration(days: 7)),
+        channels: ['LinkedIn'],
+      );
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(
+        find.text('Vaga para Desenvolvedor'),
+        200,
+      );
+      expect(find.text('Vaga para Desenvolvedor'), findsOneWidget);
+
+      await tester.tap(find.byTooltip('Kanban'));
+      await tester.pumpAndSettle();
+
+      final kanban = tester
+          .widget<KanbanScreen>(find.byType(KanbanScreen))
+          .controller;
+      expect(
+        kanban!.tasks.any(
+          (t) =>
+              t.title == 'Triagem — Vaga para Desenvolvedor' &&
+              t.status == BoardStatus.todo,
+        ),
+        isTrue,
+      );
+      expect(kanban.companies, contains('Folks'));
+      expect(kanban.roles, contains('Vaga para Desenvolvedor'));
+
+      await tester.tap(find.byTooltip('Nova tarefa'));
+      await tester.pumpAndSettle();
+
+      await tapVisible(tester, find.byKey(const ValueKey('field-Empresa')));
+      expect(find.text('Folks'), findsWidgets);
+      await tester.tap(find.text('Folks').last);
+      await tester.pumpAndSettle();
+
+      await tapVisible(tester, find.byKey(const ValueKey('field-Cargo')));
+      expect(find.text('Vaga para Desenvolvedor'), findsWidgets);
+      await tester.tap(find.text('Vaga para Desenvolvedor').last);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Triagem — Vaga para Desenvolvedor'), findsWidgets);
+      expect(find.text('Folks'), findsWidgets);
+
+      await tapVisible(tester, find.text('Cancelar'));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   for (final size in [
     const Size(375, 812),

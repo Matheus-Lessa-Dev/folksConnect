@@ -37,6 +37,32 @@ Future<void> tapVisible(WidgetTester tester, Finder finder) async {
 }
 
 void main() {
+  test('perfil exibe dados padrão do usuário autenticado e permite alteração', () {
+    final controller = SettingsController();
+    addTearDown(controller.dispose);
+    expect(controller.profileName, 'Joabe');
+    expect(controller.profileEmail, 'joabe@gmail.com');
+    expect(controller.profileRole, 'Analista');
+
+    controller.profileName = 'Novo Nome';
+    controller.profileEmail = 'novo@email.com';
+    controller.profileRole = 'Gerente';
+
+    expect(controller.profileName, 'Novo Nome');
+    expect(controller.profileEmail, 'novo@email.com');
+    expect(controller.profileRole, 'Gerente');
+  });
+
+  testWidgets('tela de configurações exibe informações do perfil do usuário', (tester) async {
+    final controller = SettingsController();
+    addTearDown(controller.dispose);
+    await mount(tester, controller);
+
+    expect(find.widgetWithText(TextField, 'Joabe'), findsOneWidget);
+    expect(find.widgetWithText(TextField, 'joabe@gmail.com'), findsOneWidget);
+    expect(find.text('Analista'), findsOneWidget);
+  });
+
   test('configuração valida todas as seções antes de gravar', () {
     final controller = SettingsController();
     addTearDown(controller.dispose);
