@@ -388,15 +388,12 @@ class _ConfigurationSheetState extends State<_ConfigurationSheet> {
                 for (var index = 0; index < _sections[section].length; index++)
                   Row(
                     key: ObjectKey(_sections[section][index]),
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      const Padding(
-                        padding: EdgeInsets.only(top: 20),
-                        child: Icon(
-                          Icons.circle,
-                          size: 5,
-                          color: FolksColors.orange,
-                        ),
+                      const Icon(
+                        Icons.circle,
+                        size: 5,
+                        color: FolksColors.orange,
                       ),
                       const SizedBox(width: 8),
                       Expanded(
