@@ -185,7 +185,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                         const SizedBox(height: 12),
                         _option(
-                          'Kanban, funil e Checklis',
+                          'Kanban, Funil e Checklist',
                           'Gerenciar status do Kanban, etapas do funil de vagas e o Checklist Padrão',
                           () => _sheet<void>(
                             context,

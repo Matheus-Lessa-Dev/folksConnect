@@ -291,17 +291,10 @@ class _KanbanScreenState extends State<KanbanScreen> {
                           foregroundColor: FolksColors.white,
                           shape: const CircleBorder(),
                           onPressed: _create,
-                          child: const Text(
-                            '+',
-                            style: TextStyle(
-                              fontFamily: 'InriaSans',
-                              fontSize: 48,
-                              height: 1,
-                            ),
+                          child: const Icon(Icons.add, size: 28),
                           ),
                         ),
                       ),
-                    ),
                   ],
                 ),
               ),

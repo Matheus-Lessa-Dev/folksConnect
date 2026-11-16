@@ -62,16 +62,6 @@ class _VacancyFunnelScreenState extends State<VacancyFunnelScreen> {
                   Expanded(
                     child: Text('Funil de Vagas', style: FolksTheme.heading),
                   ),
-                  const SizedBox(width: 8),
-                  TextButton(
-                    onPressed: _create,
-                    style: TextButton.styleFrom(
-                      backgroundColor: FolksColors.card,
-                      minimumSize: const Size(64, 48),
-                      shape: const StadiumBorder(),
-                    ),
-                    child: const Text('+ Vaga'),
-                  ),
                   if (widget.onSignOut != null)
                     IconButton(
                       tooltip: 'Sair',
@@ -82,7 +72,10 @@ class _VacancyFunnelScreenState extends State<VacancyFunnelScreen> {
               ),
             ),
             Expanded(
-              child: ListenableBuilder(
+              child: Stack(
+                children: [
+                Positioned.fill(
+                child: ListenableBuilder(
                 listenable: _controller,
                 builder: (context, _) {
                   final vacancies = _controller.vacancies;
@@ -120,6 +113,26 @@ class _VacancyFunnelScreenState extends State<VacancyFunnelScreen> {
                     ),
                   );
                 },
+              ),
+              ),
+              Positioned(
+                right: 28,
+                bottom: 15,
+                child: SizedBox(
+                width: 49,
+                height: 49,
+                child: FloatingActionButton.small(
+                heroTag: 'new-vacancy',
+                tooltip: 'Nova vaga',
+                backgroundColor: FolksColors.gold,
+                foregroundColor: FolksColors.white,
+                shape: const CircleBorder(),
+                onPressed: _create,
+                child: const Icon(Icons.add, size: 28),
+              ),
+              ),
+              ),
+              ],
               ),
             ),
             const FolksNavigation(selectedRoute: '/funil-vagas'),

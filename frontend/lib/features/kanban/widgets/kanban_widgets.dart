@@ -70,11 +70,11 @@ class Pipeline extends StatelessWidget {
                       Container(
                         height: 4,
                         decoration: BoxDecoration(
-                          color: item.index <= stage.index
-                              ? (item.index == 0
+                          color: item.index < stage.index
                                     ? FolksColors.green
-                                    : FolksColors.gold)
-                              : FolksColors.border,
+                                    : item.index == stage.index
+                                    ? FolksColors.gold
+                              : Colors.grey,
                           borderRadius: BorderRadius.circular(4),
                         ),
                       ),

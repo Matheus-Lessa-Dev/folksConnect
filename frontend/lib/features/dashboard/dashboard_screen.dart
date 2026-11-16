@@ -204,18 +204,24 @@ class _Activities extends StatelessWidget {
         child: CustomPaint(painter: _ActivitiesChart(values)),
       ),
     );
-    final legend = Wrap(
-      spacing: 12,
-      runSpacing: 8,
-      children: [
-        for (final stage in RecruitmentStage.values)
-          _Legend(
+    final legend = SizedBox(
+  width: 220,
+  child: Wrap(
+    alignment: WrapAlignment.spaceEvenly,
+    runSpacing: 16,
+    children: [
+      for (final stage in RecruitmentStage.values)
+        SizedBox(
+          width: 100,
+          child: _Legend(
             color: _stageColors[stage.index],
             label: stage.label,
             count: counts[stage]!,
           ),
-      ],
-    );
+        ),
+    ],
+  ),
+);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -254,14 +260,23 @@ class _Legend extends StatelessWidget {
   final int count;
 
   @override
-  Widget build(BuildContext context) => Row(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      Icon(Icons.circle, color: color, size: 10),
-      const SizedBox(width: 5),
-      Flexible(child: Text('$label: $count')),
-    ],
-  );
+  Widget build(BuildContext context) => Column(
+  mainAxisSize: MainAxisSize.min,
+  children: [
+    Text(
+      '$count',
+      style: const TextStyle(
+        fontFamily: 'InriaSerif',
+        fontSize: 18,
+        fontWeight: FontWeight.bold,
+      ),
+    ),
+    Text(
+      label,
+      style: const TextStyle(fontSize: 11),
+    ),
+  ],
+);
 }
 
 class _ActivitiesChart extends CustomPainter {

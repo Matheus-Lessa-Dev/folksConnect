@@ -6,6 +6,7 @@ import '../../core/widgets/folks_navigation.dart';
 import '../kanban/kanban_controller.dart';
 import '../kanban/task.dart';
 import '../kanban/widgets/kanban_widgets.dart';
+import '../kanban/widgets/task_details_sheet.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key, required this.controller, this.userName});
@@ -122,7 +123,10 @@ class HomeScreen extends StatelessWidget {
               child: _PriorityCard(
                 task: task,
                 today: today,
-                onTap: () => context.go('/kanban'),
+               onTap: () => showFolksSheet<void>(
+                context,
+                TaskDetailsSheet(controller: controller, taskId: task.id),
+              ),
               ),
             ),
         if (recent.isEmpty) const SizedBox(height: 20),

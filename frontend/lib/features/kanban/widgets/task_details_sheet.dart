@@ -214,6 +214,8 @@ class _TaskDetailsSheetState extends State<TaskDetailsSheet> {
                               hintText: '+ Adicionar item',
                               counterText: '',
                               labelText: 'Novo item do checklist',
+                              labelStyle: TextStyle(color: Colors.white70),
+                              floatingLabelStyle: TextStyle(color: Colors.white),
                             ),
                             onSubmitted: (_) => _addChecklist(),
                           ),
