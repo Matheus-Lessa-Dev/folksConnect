@@ -4,6 +4,8 @@ import 'package:frontend/core/theme/folks_theme.dart';
 import 'package:frontend/features/kanban/kanban_controller.dart';
 import 'package:frontend/features/kanban/kanban_screen.dart';
 import 'package:frontend/features/kanban/task.dart';
+import 'package:frontend/features/vacancy_funnel/vacancy.dart';
+import 'package:frontend/features/vacancy_funnel/vacancy_funnel_controller.dart';
 
 Future<void> mount(
   WidgetTester tester,
@@ -92,6 +94,81 @@ void main() {
     expect(controller.filter, 'Recrutamento');
     expect(controller.visibleTasks.single.title, 'Nova triagem');
   });
+
+  test(
+    'vaga criada no funil gera tarefa em A Fazer no Kanban e disponibiliza empresa/cargo',
+    () {
+      final funnel = VacancyFunnelController(vacancies: []);
+      final kanban = KanbanController(tasks: [], funnel: funnel);
+      addTearDown(funnel.dispose);
+      addTearDown(kanban.dispose);
+
+      funnel.addClient(const VacancyClient(company: 'Folks'));
+      expect(kanban.companies, contains('Folks'));
+
+      final start = DateTime(2026, 11, 16);
+      final end = DateTime(2026, 11, 25);
+      funnel.add(
+        role: 'Vaga para Desenvolvedor',
+        company: 'Folks',
+        profile: 'Desenvolvimento Flutter e backend Dart.',
+        assignee: 'Eduarda - Analista',
+        start: start,
+        end: end,
+        channels: ['LinkedIn'],
+      );
+
+      expect(kanban.tasks.length, 1);
+      final task = kanban.tasks.single;
+      expect(task.status, BoardStatus.todo);
+      expect(task.title, 'Triagem — Vaga para Desenvolvedor');
+      expect(task.company, 'Folks');
+      expect(task.role, 'Vaga para Desenvolvedor');
+      expect(task.stage, RecruitmentStage.screening);
+      expect(task.assignee, 'Eduarda — Analista');
+      expect(task.start, start);
+      expect(task.end, end);
+      expect(task.description, 'Desenvolvimento Flutter e backend Dart.');
+
+      expect(kanban.roles, contains('Vaga para Desenvolvedor'));
+      expect(kanban.companies, contains('Folks'));
+    },
+  );
+
+  testWidgets(
+    'nova tarefa exibe empresas e cargos do funil e preenche dados ao selecionar cargo',
+    (tester) async {
+      final funnel = VacancyFunnelController(vacancies: []);
+      final kanban = KanbanController(tasks: [], funnel: funnel);
+      addTearDown(funnel.dispose);
+      addTearDown(kanban.dispose);
+
+      funnel.addClient(const VacancyClient(company: 'Folks'));
+      final start = DateTime(2026, 11, 16);
+      final end = DateTime(2026, 11, 25);
+      funnel.add(
+        role: 'Vaga para Desenvolvedor',
+        company: 'Folks',
+        profile: 'Desenvolvimento em Flutter',
+        assignee: 'Eduarda - Analista',
+        start: start,
+        end: end,
+        channels: ['LinkedIn'],
+      );
+
+      await mount(tester, kanban);
+      await tester.tap(find.byTooltip('Nova tarefa'));
+      await tester.pumpAndSettle();
+
+      await tapVisible(tester, find.byKey(const ValueKey('field-Cargo')));
+      expect(find.text('Vaga para Desenvolvedor'), findsWidgets);
+      await tester.tap(find.text('Vaga para Desenvolvedor').last);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Triagem — Vaga para Desenvolvedor'), findsWidgets);
+      expect(find.text('Folks'), findsWidgets);
+    },
+  );
 
   testWidgets('filtra por projeto, alterna lista e move cartão', (
     tester,

@@ -5,9 +5,13 @@ import 'vacancy.dart';
 
 /// Dados de demonstração, mantidos somente em memória durante a sessão.
 class VacancyFunnelController extends ChangeNotifier {
-  VacancyFunnelController({List<FunnelVacancy>? vacancies, DateTime? now})
-    : _vacancies = List.of(vacancies ?? demoVacancies(now ?? DateTime.now()));
+  VacancyFunnelController({
+    List<FunnelVacancy>? vacancies,
+    DateTime? now,
+    this.onVacancyAdded,
+  }) : _vacancies = List.of(vacancies ?? demoVacancies(now ?? DateTime.now()));
 
+  void Function(FunnelVacancy vacancy)? onVacancyAdded;
   final List<FunnelVacancy> _vacancies;
   final List<VacancyClient> _clients = [
     const VacancyClient(company: 'Faculdade Donaduzzi'),
@@ -51,8 +55,13 @@ class VacancyFunnelController extends ChangeNotifier {
     if (role.trim().isEmpty || profile.trim().isEmpty) {
       throw ArgumentError('Informe o cargo e o perfil desejado.');
     }
+    final normalizedAssignee =
+        assignee.replaceAll('—', '-').trim().toLowerCase();
+    final validAssignee = assignees.any(
+      (a) => a.replaceAll('—', '-').trim().toLowerCase() == normalizedAssignee,
+    );
     if (!_clients.any((client) => client.company == company) ||
-        !assignees.contains(assignee)) {
+        !validAssignee) {
       throw ArgumentError('Selecione um cliente e um responsável válidos.');
     }
     if (end.isBefore(start)) {
@@ -61,18 +70,18 @@ class VacancyFunnelController extends ChangeNotifier {
     if (channels.isEmpty || channels.any((channel) => channel.trim().isEmpty)) {
       throw ArgumentError('Selecione ao menos um canal de divulgação.');
     }
-    _vacancies.add(
-      FunnelVacancy(
-        id: 'vacancy-${DateTime.now().microsecondsSinceEpoch}-${_sequence++}',
-        role: role.trim(),
-        company: company,
-        profile: profile.trim(),
-        assignee: assignee,
-        start: start,
-        end: end,
-        channels: List.unmodifiable(channels),
-      ),
+    final vacancy = FunnelVacancy(
+      id: 'vacancy-${DateTime.now().microsecondsSinceEpoch}-${_sequence++}',
+      role: role.trim(),
+      company: company,
+      profile: profile.trim(),
+      assignee: assignee,
+      start: start,
+      end: end,
+      channels: List.unmodifiable(channels),
     );
+    _vacancies.add(vacancy);
+    onVacancyAdded?.call(vacancy);
     notifyListeners();
   }
 
