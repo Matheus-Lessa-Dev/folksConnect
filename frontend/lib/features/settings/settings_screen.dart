@@ -29,6 +29,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
   );
 
   @override
+  void didUpdateWidget(SettingsScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      if (_name.text != widget.controller.profileName) {
+        _name.text = widget.controller.profileName;
+      }
+      if (_email.text != widget.controller.profileEmail) {
+        _email.text = widget.controller.profileEmail;
+      }
+    }
+  }
+
+  @override
   void dispose() {
     _name.dispose();
     _email.dispose();
