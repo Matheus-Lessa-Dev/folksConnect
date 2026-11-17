@@ -212,10 +212,72 @@ class TaskCard extends StatelessWidget {
   );
 }
 
-class FieldLabel extends StatelessWidget {
+/// Titulo + campo. Enquanto um campo de texto ou lista do bloco esta
+/// selecionado, o titulo sai de cima e passa a aparecer sobre a borda superior.
+class FieldLabel extends StatefulWidget {
   const FieldLabel(this.label, {super.key, required this.child});
   final String label;
   final Widget child;
+
+  @override
+  State<FieldLabel> createState() => _FieldLabelState();
+}
+
+class _FieldLabelState extends State<FieldLabel> {
+  bool _editing = false;
+
+  void _focusChanged(bool hasFocus) {
+    var editing = false;
+    final focused = FocusManager.instance.primaryFocus?.context;
+    if (hasFocus && focused != null) {
+      if (focused.widget is EditableText) editing = true;
+      focused.visitAncestorElements((element) {
+        if (element.widget is EditableText ||
+            element.widget is DropdownButton) {
+          editing = true;
+          return false;
+        }
+        return true;
+      });
+    }
+    if (editing != _editing) setState(() => _editing = editing);
+  }
+
+  /// Rotulo sobre a borda superior. A caixa tem a cor do fundo acima da borda e
+  /// a cor do campo abaixo dela, para "recortar" a borda sem parecer um
+  /// retangulo solto.
+  Widget _borderLabel(BuildContext context) {
+    final surface = Theme.of(context).colorScheme.surface;
+    final inside = Color.alphaBlend(FolksColors.field, surface);
+    return Positioned(
+      left: 10,
+      top: -8,
+      child: IgnorePointer(
+        child: Container(
+          height: 16,
+          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [surface, surface, inside, inside],
+              stops: const [0, .5, .5, 1],
+            ),
+          ),
+          child: Text(
+            widget.label,
+            style: const TextStyle(
+              fontSize: 13,
+              height: 1,
+              fontWeight: FontWeight.w600,
+              color: FolksColors.fieldLabel,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) => Padding(
@@ -223,16 +285,30 @@ class FieldLabel extends StatelessWidget {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          label.toUpperCase(),
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: FolksColors.muted,
+        Opacity(
+          opacity: _editing ? 0 : 1,
+          child: Text(
+            widget.label.toUpperCase(),
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: FolksColors.muted,
+            ),
           ),
         ),
         const SizedBox(height: 8),
-        Semantics(label: label, child: child),
+        Focus(
+          canRequestFocus: false,
+          skipTraversal: true,
+          onFocusChange: _focusChanged,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Semantics(label: widget.label, child: widget.child),
+              if (_editing) _borderLabel(context),
+            ],
+          ),
+        ),
       ],
     ),
   );

@@ -17,6 +17,7 @@ abstract final class FolksColors {
   static const gold = Color(0xFFD9A441);
   static const white = Color(0xFFFFFFFF);
   static const muted = Color(0xFFC6C6C6);
+  static const fieldLabel = Color(0xFFD9D9D9);
   static const blue = Color(0xFF3298FF);
   static const yellow = Color(0xFFD4D84C);
   static const green = Color(0xFF55CE91);
@@ -25,6 +26,13 @@ abstract final class FolksColors {
 }
 
 abstract final class FolksTheme {
+  /// Borda padrao de todos os campos de formulario.
+  static OutlineInputBorder _fieldBorder(Color color, {double width = 1}) =>
+      OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: BorderSide(color: color, width: width),
+      );
+
   static const background = RadialGradient(
     center: Alignment(.7782, -.2052),
     radius: 1,
@@ -99,22 +107,22 @@ abstract final class FolksTheme {
       filled: true,
       fillColor: FolksColors.field,
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: FolksColors.card),
+      // Rotulo dentro do campo quando vazio; ao focar ou preencher, sobe e
+      // fica sobre a borda superior.
+      floatingLabelBehavior: FloatingLabelBehavior.auto,
+      floatingLabelAlignment: FloatingLabelAlignment.start,
+      labelStyle: const TextStyle(color: FolksColors.muted, fontSize: 15),
+      floatingLabelStyle: const TextStyle(
+        color: FolksColors.fieldLabel,
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
       ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: FolksColors.card),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: FolksColors.gold),
-      ),
-      errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: FolksColors.red),
-      ),
+      border: _fieldBorder(FolksColors.card),
+      enabledBorder: _fieldBorder(FolksColors.card),
+      disabledBorder: _fieldBorder(FolksColors.card),
+      focusedBorder: _fieldBorder(FolksColors.gold, width: 1.5),
+      errorBorder: _fieldBorder(FolksColors.red),
+      focusedErrorBorder: _fieldBorder(FolksColors.red, width: 1.5),
       hintStyle: const TextStyle(color: Color(0x91666666), fontSize: 15),
     ),
     filledButtonTheme: FilledButtonThemeData(
