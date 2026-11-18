@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 
+import '../../core/network/api_client.dart';
+
 class SettingsUser {
   SettingsUser({
     required this.id,
@@ -27,6 +29,28 @@ class SettingsUser {
 /// Dados de demonstracao, mantidos apenas na sessao autenticada.
 /// Os papeis nao concedem autorizacao no backend.
 class SettingsController extends ChangeNotifier {
+  SettingsController({this.apiClient});
+
+  final ApiClient? apiClient;
+  bool _isLoading = false;
+  bool get isLoading => _isLoading;
+
+  /// Busca usuários do backend
+  Future<void> fetchUsers() async {
+    if (apiClient == null) return;
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final response = await apiClient!.get('/usuarios') as List;
+      // Converter lista de usuários do backend
+    } catch (e) {
+      debugPrint('Erro ao buscar usuários: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
   static const roles = ['Assistente', 'Gerente', 'Analista', 'Diretor'];
   static const availablePermissions = [
     'Importar Planilha',

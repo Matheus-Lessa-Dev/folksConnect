@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'core/network/api_client.dart';
 import 'core/theme/folks_theme.dart';
 import 'features/auth/authentication_service.dart';
 import 'features/auth/login_screen.dart';
@@ -21,9 +22,11 @@ class FolksConnectApp extends StatefulWidget {
   const FolksConnectApp({
     super.key,
     this.authentication = const DemoAuthenticationService(),
+    this.apiClient,
   });
 
   final AuthenticationService authentication;
+  final ApiClient? apiClient;
 
   @override
   State<FolksConnectApp> createState() => _FolksConnectAppState();
@@ -80,7 +83,7 @@ class _FolksConnectAppState extends State<FolksConnectApp> {
       ),
       ShellRoute(
         builder: (context, state, child) =>
-            _AuthenticatedWorkspace(child: child),
+            _AuthenticatedWorkspace(apiClient: widget.apiClient, child: child),
         routes: [
           GoRoute(
             path: _homeRoute,
@@ -180,8 +183,9 @@ class _StartupFlowState extends State<_StartupFlow> {
 }
 
 class _AuthenticatedWorkspace extends StatefulWidget {
-  const _AuthenticatedWorkspace({required this.child});
+  const _AuthenticatedWorkspace({required this.child, this.apiClient});
   final Widget child;
+  final ApiClient? apiClient;
 
   @override
   State<_AuthenticatedWorkspace> createState() =>
@@ -189,9 +193,9 @@ class _AuthenticatedWorkspace extends StatefulWidget {
 }
 
 class _AuthenticatedWorkspaceState extends State<_AuthenticatedWorkspace> {
-  final _kanban = KanbanController();
-  final _funnel = VacancyFunnelController();
-  final _settings = SettingsController();
+  final _kanban = KanbanController(apiClient: widget.apiClient)..fetchTasks();
+  final _funnel = VacancyFunnelController(apiClient: widget.apiClient)..fetchVacancies();
+  final _settings = SettingsController(apiClient: widget.apiClient);
 
   @override
   void dispose() {

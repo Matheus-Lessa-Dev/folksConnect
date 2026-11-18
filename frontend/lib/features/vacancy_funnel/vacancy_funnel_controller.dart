@@ -1,12 +1,40 @@
 import 'package:flutter/foundation.dart';
 
+import '../../core/network/api_client.dart';
 import '../kanban/task.dart';
 import 'vacancy.dart';
 
 /// Dados de demonstração, mantidos somente em memória durante a sessão.
 class VacancyFunnelController extends ChangeNotifier {
-  VacancyFunnelController({List<FunnelVacancy>? vacancies, DateTime? now})
-    : _vacancies = List.of(vacancies ?? demoVacancies(now ?? DateTime.now()));
+  VacancyFunnelController({
+    this.apiClient,
+    List<FunnelVacancy>? vacancies,
+    DateTime? now,
+  }) : _vacancies = List.of(vacancies ?? demoVacancies(now ?? DateTime.now()));
+
+  final ApiClient? apiClient;
+  bool _isLoading = false;
+  bool get isLoading => _isLoading;
+
+  /// Busca vagas do backend
+  Future<void> fetchVacancies() async {
+    if (apiClient == null) return;
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final response = await apiClient!.get('/vagas') as List;
+      _vacancies.clear();
+      for (final item in response) {
+        // Converter o JSON vindo do backend para FunnelVacancy
+      }
+    } catch (e) {
+      debugPrint('Erro ao carregar vagas: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 
   final List<FunnelVacancy> _vacancies;
   final List<VacancyClient> _clients = [

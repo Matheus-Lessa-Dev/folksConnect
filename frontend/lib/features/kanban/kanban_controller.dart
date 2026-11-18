@@ -1,13 +1,60 @@
 import 'package:flutter/foundation.dart';
 
+import '../../core/network/api_client.dart';
 import 'task.dart';
 
 /// Estado de demonstracao. A API existente ainda so expoe health check.
 /// O controller nao grava nem simula gravacao no backend.
 class KanbanController extends ChangeNotifier {
-  KanbanController({List<KanbanTask>? tasks, DateTime Function()? now})
-    : _tasks = List.of(tasks ?? demoTasks()),
+  KanbanController({
+    this.apiClient,
+    List<KanbanTask>? tasks,
+    DateTime Function()? now,
+  }) : _tasks = List.of(tasks ?? demoTasks()),
       _now = now ?? DateTime.now;
+
+  final ApiClient? apiClient;
+  bool _isLoading = false;
+  bool get isLoading => _isLoading;
+
+  /// Busca as tarefas do backend
+  Future<void> fetchTasks() async {
+    if (apiClient == null) return;
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final response = await apiClient!.get('/tarefas') as List;
+      _tasks.clear();
+      for (final item in response) {
+        // Converter o JSON vindo do backend para KanbanTask
+        // _tasks.add(KanbanTask.fromJson(item));
+      }
+    } catch (e) {
+      debugPrint('Erro ao buscar tarefas: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Adiciona uma tarefa e envia ao backend
+  Future<void> addTaskRemote(KanbanTask task) async {
+    add(task); // Atualiza localmente para resposta rápida na interface
+    if (apiClient != null) {
+      try {
+        await apiClient!.post('/tarefas', {
+          'titulo': task.title,
+          'projeto': task.project,
+          'empresa': task.company,
+          'responsavel': task.assignee,
+          'prioridade': task.priority.name,
+        });
+      } catch (e) {
+        debugPrint('Erro ao salvar tarefa no backend: $e');
+      }
+    }
+  }
 
   static const projects = [
     'Recrutamento',
