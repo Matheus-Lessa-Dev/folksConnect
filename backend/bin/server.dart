@@ -1,13 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
 
-
 import 'package:bcrypt/bcrypt.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_router/shelf_router.dart';
 
-// Função auxiliar para respostas JSON
+// Função auxiliar para respostas JSON com suporte a CORS
 Response _jsonResponse(Object data, {int statusCode = 200}) {
   return Response(
     statusCode,
@@ -21,18 +20,22 @@ Response _jsonResponse(Object data, {int statusCode = 200}) {
   );
 }
 
+// Hash Bcrypt gerado para a conta de demonstração (senha: 12345)
+final _demoUserHash = BCrypt.hashpw('12345', BCrypt.gensalt());
+
 Future<void> main() async {
   final port = int.tryParse(Platform.environment['PORT'] ?? '') ?? 8080;
 
   final router = Router()
-    // Health Check
+    // 1. Health Check
     ..get('/api/health', (Request request) {
       return _jsonResponse({
         'status': 'ok',
-        'service': 'folks-connect-backend'
+        'service': 'folks-connect-backend',
       });
     })
-    // Endpoint de Login (POST /api/auth/login)
+
+    // 2. Endpoint de Login com validação Bcrypt (POST /api/auth/login)
     ..post('/api/auth/login', (Request request) async {
       try {
         final bodyText = await request.readAsString();
@@ -48,23 +51,19 @@ Future<void> main() async {
           );
         }
 
-        // --- SIMULAÇÃO / CONSULTA AO BANCO POSTGRESQL ---
-        // Na integração real com PostgreSQL:
-        // final usuario = await db.query('SELECT * FROM usuarios WHERE email = @email', substitutionValues: {'email': email});
-        // if (usuario.isEmpty) return _jsonResponse({'erro': 'Credenciais inválidas'}, statusCode: 401);
-        // final hashArmazenado = usuario.first['senha_hash'];
-        // final senhaValida = Bcrypt.checkpw(senha, hashArmazenado);
-
-        // Exemplo temporário para validar login:
-        if (email.toLowerCase() == 'joabe@gmail.com' && senha == '12345') {
-          return _jsonResponse({
-            'token': 'jwt_token_exemplo_folks_connect_123456',
-            'usuario': {
-              'id': 1,
-              'email': email,
-              'nome': 'Joabe',
-            },
-          });
+        // Validação com Bcrypt (compara a senha recebida com o Hash + Salt armazenado)
+        if (email.toLowerCase() == 'joabe@gmail.com') {
+          final bool senhaValida = BCrypt.checkpw(senha, _demoUserHash);
+          if (senhaValida) {
+            return _jsonResponse({
+              'token': 'jwt_token_exemplo_folks_connect_123456',
+              'usuario': {
+                'id': 1,
+                'email': email,
+                'nome': 'Joabe',
+              },
+            });
+          }
         }
 
         return _jsonResponse(
@@ -76,26 +75,14 @@ Future<void> main() async {
       }
     })
 
-    // Endpoint de Tarefas (GET /api/tarefas)
+    // 3. Endpoint de Tarefas (GET /api/tarefas)
     ..get('/api/tarefas', (Request request) async {
       try {
-        // Verificar token enviado no cabeçalho Authorization: Bearer <token>
         final authHeader = request.headers['authorization'];
         if (authHeader == null || !authHeader.startsWith('Bearer ')) {
           return _jsonResponse({'erro': 'Não autorizado'}, statusCode: 401);
         }
 
-        // --- CONSULTA AO BANCO POSTGRESQL ---
-        // Exemplo de query real:
-        // final result = await db.query('''
-        //   SELECT t.id_tarefa, u.email, c.nome as cargo, p.nome as projeto
-        //   FROM tarefas t
-        //   JOIN usuarios u ON t.id_usuario = u.id_usuario
-        //   JOIN cargos c ON t.id_cargo = c.id_cargo
-        //   JOIN projetos p ON t.id_projeto = p.id_projeto
-        // ''');
-
-        // Resposta JSON com a lista de tarefas:
         final tarefas = [
           {
             'id': 'task-1',
@@ -121,6 +108,58 @@ Future<void> main() async {
       } catch (e) {
         return _jsonResponse({'erro': 'Erro ao listar tarefas'}, statusCode: 500);
       }
+    })
+
+    // 4. Endpoint de Vagas (GET /api/vagas)
+    ..get('/api/vagas', (Request request) async {
+      try {
+        final authHeader = request.headers['authorization'];
+        if (authHeader == null || !authHeader.startsWith('Bearer ')) {
+          return _jsonResponse({'erro': 'Não autorizado'}, statusCode: 401);
+        }
+
+        final vagas = [
+          {
+            'id': 'vacancy-1',
+            'cargo': 'Analista Financeiro Jr.',
+            'empresa': 'Faculdade Donaduzzi',
+            'perfil': 'Análise financeira e indicadores',
+            'responsavel': 'Eduarda — Analista',
+          },
+          {
+            'id': 'vacancy-2',
+            'cargo': 'Desenvolvedor Sênior',
+            'empresa': 'Meta',
+            'perfil': 'Desenvolvimento e manutenção de sistemas',
+            'responsavel': 'Joabe — Analista',
+          },
+        ];
+
+        return _jsonResponse(vagas);
+      } catch (e) {
+        return _jsonResponse({'erro': 'Erro ao listar vagas'}, statusCode: 500);
+      }
+    })
+
+    // 5. Endpoint de Usuários (GET /api/usuarios)
+    ..get('/api/usuarios', (Request request) async {
+      try {
+        final authHeader = request.headers['authorization'];
+        if (authHeader == null || !authHeader.startsWith('Bearer ')) {
+          return _jsonResponse({'erro': 'Não autorizado'}, statusCode: 401);
+        }
+
+        final usuarios = [
+          {'id': 1, 'nome': 'Ana Munaro', 'email': 'ana@example.com', 'cargo': 'Assistente'},
+          {'id': 2, 'nome': 'Matheus Lessa', 'email': 'matheus@example.com', 'cargo': 'Gerente'},
+          {'id': 3, 'nome': 'Eduarda Oliveira', 'email': 'eduarda@example.com', 'cargo': 'Analista'},
+          {'id': 4, 'nome': 'João Francisco', 'email': 'joao@example.com', 'cargo': 'Diretor'},
+        ];
+
+        return _jsonResponse(usuarios);
+      } catch (e) {
+        return _jsonResponse({'erro': 'Erro ao listar usuários'}, statusCode: 500);
+      }
     });
 
   final handler = Pipeline()
@@ -132,7 +171,7 @@ Future<void> main() async {
   print('Backend ouvindo em http://${server.address.host}:${server.port}');
 }
 
-// Middleware para tratar Preflight OPTIONS de navegadores
+// Middleware para tratar Preflight OPTIONS de navegadores (CORS)
 Middleware _corsMiddleware() {
   return (Handler innerHandler) {
     return (Request request) async {

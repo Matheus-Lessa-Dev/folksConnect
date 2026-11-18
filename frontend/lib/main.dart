@@ -11,5 +11,8 @@ void main() {
   usePathUrlStrategy();
   final apiClient = ApiClient();
   final authService = HttpAuthenticationService(apiClient);
-  runApp(const FolksConnectApp(authentication: authService));
+  runApp(FolksConnectApp(
+    authentication: authService,
+    apiClient: apiClient,
+  ));
 }

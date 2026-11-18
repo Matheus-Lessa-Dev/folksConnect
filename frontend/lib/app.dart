@@ -193,9 +193,17 @@ class _AuthenticatedWorkspace extends StatefulWidget {
 }
 
 class _AuthenticatedWorkspaceState extends State<_AuthenticatedWorkspace> {
-  final _kanban = KanbanController(apiClient: widget.apiClient)..fetchTasks();
-  final _funnel = VacancyFunnelController(apiClient: widget.apiClient)..fetchVacancies();
-  final _settings = SettingsController(apiClient: widget.apiClient);
+  late final KanbanController _kanban;
+  late final VacancyFunnelController _funnel;
+  late final SettingsController _settings;
+
+  @override
+  void initState() {
+    super.initState();
+    _kanban = KanbanController(apiClient: widget.apiClient)..fetchTasks();
+    _funnel = VacancyFunnelController(apiClient: widget.apiClient)..fetchVacancies();
+    _settings = SettingsController(apiClient: widget.apiClient);
+  }
 
   @override
   void dispose() {
