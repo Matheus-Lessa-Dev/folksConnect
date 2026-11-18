@@ -1,3 +1,5 @@
+import '../../core/network/api_client.dart';
+
 abstract interface class AuthenticationService {
   Future<void> signIn({required String username, required String password});
 }
@@ -34,5 +36,33 @@ class UnavailableAuthenticationService implements AuthenticationService {
   @override
   Future<void> signIn({required String username, required String password}) {
     return Future<void>.error(const AuthenticationUnavailable());
+  }
+}
+
+class HttpAuthenticationService implements AuthenticationService {
+  const HttpAuthenticationService(this.apiClient);
+
+  final ApiClient apiClient;
+
+  @override
+  Future<void> signIn({
+    required String username,
+    required String password,
+  }) async {
+    try {
+      final response = await apiClient.post('/auth/login', {
+        'email': username,
+        'senha': password,
+      });
+
+      final token = response['token'] as String?;
+      if (token != null) {
+        apiClient.setToken(token);
+      } else {
+        throw const InvalidCredentials();
+      }
+    } catch (_) {
+      throw const InvalidCredentials();
+    }
   }
 }
