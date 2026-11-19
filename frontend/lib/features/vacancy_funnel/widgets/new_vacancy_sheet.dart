@@ -362,32 +362,7 @@ class _NewClientFormState extends State<_NewClientForm> {
               child: TextFormField(
                 key: ValueKey('client-${field.key}'),
                 controller: field.value,
-                style: WidgetStateTextStyle.resolveWith(
-                  (states) => states.contains(WidgetState.focused)
-                      ? const TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                        )
-                      : const TextStyle(color: FolksColors.white),
-                ),
-                decoration: InputDecoration(
-                  labelText: field.key,
-                  fillColor: WidgetStateColor.resolveWith(
-                    (states) => states.contains(WidgetState.focused)
-                        ? FolksColors.white
-                        : FolksColors.field,
-                  ),
-                  floatingLabelStyle: const TextStyle(
-                    color: FolksColors.white,
-                    fontWeight: FontWeight.bold,
-                    shadows: [
-                      Shadow(color: Colors.black, offset: Offset(-1, 0)),
-                      Shadow(color: Colors.black, offset: Offset(1, 0)),
-                      Shadow(color: Colors.black, offset: Offset(0, -1)),
-                      Shadow(color: Colors.black, offset: Offset(0, 1)),
-                    ],
-                  ),
-                ),
+                decoration: InputDecoration(labelText: field.key),
                 keyboardType: field.key == 'Email'
                     ? TextInputType.emailAddress
                     : field.key == 'Contato'
