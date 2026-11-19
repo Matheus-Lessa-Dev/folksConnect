@@ -198,16 +198,16 @@ void main() {
       find.descendant(of: companyField, matching: find.byType(InputDecorator)),
     );
     expect(input.focusNode.hasFocus, isTrue);
-    expect(input.style.color, Colors.black);
-    expect(input.style.fontWeight, FontWeight.bold);
+    // Segue o padrao visual do sistema (tema): sem fundo branco nem estilos
+    // proprios no foco; o rotulo "Empresa" sobe para a borda superior.
+    expect(decorator.isFocused, isTrue);
+    expect(decorator.decoration.fillColor, isNull);
+    expect(decorator.decoration.floatingLabelStyle, isNull);
+    expect(input.style.color, isNot(Colors.black));
     expect(
-      WidgetStateProperty.resolveAs(decorator.decoration.fillColor!, {
-        WidgetState.focused,
-      }),
-      Colors.white,
+      find.descendant(of: companyField, matching: find.text('Empresa')),
+      findsOneWidget,
     );
-    expect(decorator.decoration.floatingLabelStyle?.color, Colors.white);
-    expect(decorator.decoration.floatingLabelStyle?.shadows, isNotEmpty);
     await tester.enterText(
       find.byKey(const ValueKey('client-Empresa')),
       'Empresa Exemplo',
