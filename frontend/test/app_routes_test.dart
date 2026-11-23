@@ -153,7 +153,7 @@ void main() {
     expect(find.text('0 concluídas no total'), findsOneWidget);
 
     controller.filterBy('Financeiro');
-    controller.advance(task.id, RecruitmentStage.interview, task.assignee);
+    controller.advance(task.id, 1, task.assignee);
     await tester.pumpAndSettle();
     expect(find.text('Triagem: 2'), findsOneWidget);
     expect(find.text('Entrevista: 2'), findsOneWidget);

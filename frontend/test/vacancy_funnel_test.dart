@@ -148,7 +148,7 @@ void main() {
       expect(controller.vacancies, isEmpty);
       create(DateTime(2026, 10, 26));
       final vacancy = controller.vacancies.single;
-      expect(vacancy.stage, RecruitmentStage.screening);
+      expect(vacancy.stage, 0);
       expect(vacancy.applicants, 0);
       expect(vacancy.idealPercentage, 0);
       expect(() => vacancy.channels.add('Outro'), throwsUnsupportedError);

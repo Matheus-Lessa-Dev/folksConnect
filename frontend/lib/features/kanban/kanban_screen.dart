@@ -48,6 +48,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
 
   Widget _card(KanbanTask task, {bool showStageLabels = false}) => TaskCard(
     task: task,
+    stages: _controller.stages.names,
     showStageLabels: showStageLabels,
     onOpen: () => _open(task),
     onMove: (status) {

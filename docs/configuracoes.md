@@ -29,7 +29,7 @@ Os dados são exclusivamente de demonstração e ficam em memória no `SettingsC
 
 O cadastro não cria contas Google nem credenciais de acesso. Cargos e permissões ainda não concedem autorização real. Perfil e usuários não são enviados ao backend.
 
-As listas de etapas e checklist salvas são o estado da interface de configurações. Ainda não alteram os enums, tarefas, vagas ou checklists dos controllers de Kanban/funil. Essa integração precisa definir identificadores estáveis e tratamento de etapas já em uso antes de permitir renomear/excluir etapas reais. Não há migration nem schema novo nesta feature.
+As **etapas do funil de vagas** salvas alimentam as barras e selos de etapa de Kanban, Início, Dashboard e Funil de Vagas (`FunnelStages`, compartilhado pelos controllers). A etapa de cada tarefa/vaga é a posição na lista; reordenar ou inserir etapas no meio desloca as já em uso. As listas de etapas do Kanban e de checklist continuam sendo apenas o estado da interface de configurações e ainda não alteram tarefas, vagas ou checklists dos controllers. Essa integração precisa definir identificadores estáveis e tratamento de etapas já em uso antes de permitir renomear/excluir etapas reais. Não há migration nem schema novo nesta feature.
 
 ## Validação
 

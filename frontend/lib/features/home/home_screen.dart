@@ -122,6 +122,7 @@ class HomeScreen extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 20),
               child: _PriorityCard(
                 task: task,
+                stages: controller.stages.names,
                 today: today,
                onTap: () => showFolksSheet<void>(
                 context,
@@ -272,17 +273,22 @@ class _Metric extends StatelessWidget {
 class _PriorityCard extends StatelessWidget {
   const _PriorityCard({
     required this.task,
+    required this.stages,
     required this.today,
     required this.onTap,
   });
 
   final KanbanTask task;
+  final List<String> stages;
   final DateTime today;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final end = _day(task.end);
+    final active = task.stage >= stages.length
+        ? stages.length - 1
+        : task.stage;
     final daysLate = DateTime.utc(
       today.year,
       today.month,
@@ -353,18 +359,18 @@ class _PriorityCard extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Semantics(
-            label: 'Etapa atual: ${task.stage.label}',
+            label: 'Etapa atual: ${stages[active]}',
             child: Row(
               children: [
-                for (final stage in RecruitmentStage.values) ...[
-                  if (stage.index > 0) const SizedBox(width: 8),
+                for (var stage = 0; stage < stages.length; stage++) ...[
+                  if (stage > 0) const SizedBox(width: 8),
                   Expanded(
                     child: Container(
                       height: 6,
                       decoration: BoxDecoration(
-                        color: stage.index < task.stage.index
+                        color: stage < active
                             ? _HomePalette.onTime
-                            : stage == task.stage
+                            : stage == active
                             ? FolksColors.gold
                             : _HomePalette.progress,
                         borderRadius: BorderRadius.circular(4),
