@@ -35,6 +35,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     widget.controller.tasks,
                     DateTime.now(),
                     _days,
+                    stageCount: widget.controller.stages.length,
                   );
                   return Align(
                     alignment: Alignment.topCenter,
@@ -46,7 +47,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           const Text('Dashboard', style: FolksTheme.heading),
                           const SizedBox(height: 16),
                           _Panel(
-                            child: _Activities(counts: metrics.activities),
+                            child: _Activities(
+                              counts: metrics.activities,
+                              labels: widget.controller.stages.names,
+                            ),
                           ),
                           const SizedBox(height: 16),
                           _Panel(child: _deliveries(metrics)),
@@ -190,14 +194,13 @@ const _stageColors = [
 ];
 
 class _Activities extends StatelessWidget {
-  const _Activities({required this.counts});
-  final Map<RecruitmentStage, int> counts;
+  const _Activities({required this.counts, required this.labels});
+  final List<int> counts;
+  final List<String> labels;
 
   @override
   Widget build(BuildContext context) {
-    final values = [
-      for (final stage in RecruitmentStage.values) counts[stage]!,
-    ];
+    final values = counts;
     final pie = ExcludeSemantics(
       child: SizedBox.square(
         dimension: 128,
@@ -210,13 +213,13 @@ class _Activities extends StatelessWidget {
     alignment: WrapAlignment.spaceEvenly,
     runSpacing: 16,
     children: [
-      for (final stage in RecruitmentStage.values)
+      for (var index = 0; index < labels.length; index++)
         SizedBox(
           width: 100,
           child: _Legend(
-            color: _stageColors[stage.index],
-            label: stage.label,
-            count: counts[stage]!,
+            color: _stageColors[index % _stageColors.length],
+            label: labels[index],
+            count: counts[index],
           ),
         ),
     ],
@@ -300,7 +303,7 @@ class _ActivitiesChart extends CustomPainter {
         angle,
         sweep,
         true,
-        Paint()..color = _stageColors[index],
+        Paint()..color = _stageColors[index % _stageColors.length],
       );
       angle += sweep;
     }

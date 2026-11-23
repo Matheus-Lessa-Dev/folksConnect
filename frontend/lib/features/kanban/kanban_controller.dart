@@ -1,13 +1,23 @@
 import 'package:flutter/foundation.dart';
 
 import 'task.dart';
+import '../../core/funnel_stages.dart';
 
 /// Estado de demonstracao. A API existente ainda so expoe health check.
 /// O controller nao grava nem simula gravacao no backend.
 class KanbanController extends ChangeNotifier {
-  KanbanController({List<KanbanTask>? tasks, DateTime Function()? now})
-    : _tasks = List.of(tasks ?? demoTasks()),
-      _now = now ?? DateTime.now;
+  KanbanController({
+    List<KanbanTask>? tasks,
+    DateTime Function()? now,
+    FunnelStages? stages,
+  }) : stages = stages ?? FunnelStages(),
+       _tasks = List.of(tasks ?? demoTasks()),
+       _now = now ?? DateTime.now {
+    this.stages.addListener(notifyListeners);
+  }
+
+  /// Etapas do funil cadastradas em Configurações.
+  final FunnelStages stages;
 
   static const projects = [
     'Recrutamento',
@@ -47,6 +57,12 @@ class KanbanController extends ChangeNotifier {
   List<KanbanTask> get visibleTasks => _tasks
       .where((task) => _filter == 'Todos' || task.project == _filter)
       .toList(growable: false);
+
+  @override
+  void dispose() {
+    stages.removeListener(notifyListeners);
+    super.dispose();
+  }
 
   void filterBy(String project) {
     _filter = project;
@@ -89,9 +105,9 @@ class KanbanController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void advance(String id, RecruitmentStage stage, String assignee) {
+  void advance(String id, int stage, String assignee) {
     final task = _tasks.firstWhere((item) => item.id == id);
-    if (!task.stage.following.contains(stage)) {
+    if (!stages.following(task.stage).contains(stage)) {
       throw ArgumentError('Selecione uma etapa posterior à etapa atual.');
     }
     update(task.copyWith(stage: stage, assignee: assignee));
@@ -148,7 +164,7 @@ class KanbanController extends ChangeNotifier {
         start: day,
         end: day.add(const Duration(days: 5)),
         status: BoardStatus.inProgress,
-        stage: RecruitmentStage.interview,
+        stage: 1,
         priority: TaskPriority.high,
         checklist: defaultChecklist,
       ),

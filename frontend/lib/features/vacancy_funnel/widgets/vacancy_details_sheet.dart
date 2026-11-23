@@ -216,7 +216,10 @@ class _VacancyDetailsSheetState extends State<VacancyDetailsSheet> {
             style: const TextStyle(color: FolksColors.muted),
           ),
           const SizedBox(height: 12),
-          Pipeline(vacancy.stage),
+          Pipeline(
+            stages: widget.controller.stages.names,
+            current: vacancy.stage,
+          ),
           const Divider(height: 28),
           VacancyDeadlineFields(
             start: _start,

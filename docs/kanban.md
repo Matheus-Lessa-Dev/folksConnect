@@ -11,6 +11,8 @@ Referencia: [Folks Mobile no Figma](https://www.figma.com/design/H2ATifgEvdrl05T
 - Nova tarefa com titulo, projeto, empresa, cargo, responsavel, datas e prioridade. Campos obrigatorios e ordem dos prazos sao validados antes da criacao.
 - Detalhes com etapa de recrutamento, responsavel, prioridade, descricao, checklist e anexos de ate 10 MB por arquivo.
 - Avanco de etapa com escolha de responsavel e confirmacao. Cancelar preserva a etapa anterior; etapas anteriores e atual nao podem ser selecionadas.
+- As etapas do funil (barrinhas e selo de status) nao sao fixas no codigo: vem da lista "Etapas do funil de vagas" cadastrada em Configuracoes (`FunnelStages`) e sao atualizadas em Kanban, Inicio, Dashboard e Funil de Vagas assim que a lista e salva. A etapa da tarefa e a posicao nessa lista; se a lista encolher, a tarefa fica na ultima etapa.
+- O selo de status no topo dos detalhes mostra a etapa atual. Havendo etapa seguinte, tocar nele abre o mesmo dialogo de Avancar Etapa para escolher a proxima; na ultima etapa o selo nao e clicavel. O projeto continua ao lado, como segundo selo.
 - Status do quadro e etapa de recrutamento sao independentes: mover um cartao nao altera o funil. O menu do cartao permite mover sem depender de gestos.
 - Modais rolaveis com espaco para teclado, safe areas e controles acessiveis.
 

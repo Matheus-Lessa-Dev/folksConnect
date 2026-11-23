@@ -1,5 +1,3 @@
-import '../kanban/task.dart';
-
 /// Modelo de apresentação; não representa o contrato do banco ou da API.
 class FunnelVacancy {
   const FunnelVacancy({
@@ -11,7 +9,7 @@ class FunnelVacancy {
     required this.start,
     required this.end,
     this.channels = const [],
-    this.stage = RecruitmentStage.screening,
+    this.stage = 0,
     this.applicants = 0,
     this.idealPercentage = 0,
     this.screeningErrors = 0,
@@ -25,7 +23,8 @@ class FunnelVacancy {
   final DateTime start;
   final DateTime end;
   final List<String> channels;
-  final RecruitmentStage stage;
+  /// Posição da etapa na lista de etapas do funil (Configurações).
+  final int stage;
   final int applicants;
   final int idealPercentage;
   final int screeningErrors;

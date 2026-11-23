@@ -1,12 +1,21 @@
 import 'package:flutter/foundation.dart';
 
-import '../kanban/task.dart';
+import '../../core/funnel_stages.dart';
 import 'vacancy.dart';
 
 /// Dados de demonstração, mantidos somente em memória durante a sessão.
 class VacancyFunnelController extends ChangeNotifier {
-  VacancyFunnelController({List<FunnelVacancy>? vacancies, DateTime? now})
-    : _vacancies = List.of(vacancies ?? demoVacancies(now ?? DateTime.now()));
+  VacancyFunnelController({
+    List<FunnelVacancy>? vacancies,
+    DateTime? now,
+    FunnelStages? stages,
+  }) : stages = stages ?? FunnelStages(),
+       _vacancies = List.of(vacancies ?? demoVacancies(now ?? DateTime.now())) {
+    this.stages.addListener(notifyListeners);
+  }
+
+  /// Etapas do funil cadastradas em Configurações.
+  final FunnelStages stages;
 
   final List<FunnelVacancy> _vacancies;
   final List<VacancyClient> _clients = [
@@ -22,6 +31,12 @@ class VacancyFunnelController extends ChangeNotifier {
     'Joabe - Analista',
     'Matheus - Gerente',
   ];
+
+  @override
+  void dispose() {
+    stages.removeListener(notifyListeners);
+    super.dispose();
+  }
 
   List<FunnelVacancy> get vacancies => List.unmodifiable(_vacancies);
   List<VacancyClient> get clients => List.unmodifiable(_clients);
@@ -120,7 +135,7 @@ class VacancyFunnelController extends ChangeNotifier {
         assignee: assignees.first,
         start: today.subtract(const Duration(days: 9)),
         end: today.subtract(const Duration(days: 1)),
-        stage: RecruitmentStage.interview,
+        stage: 1,
         applicants: 26,
         idealPercentage: 58,
       ),
@@ -132,7 +147,7 @@ class VacancyFunnelController extends ChangeNotifier {
         assignee: assignees.first,
         start: today.subtract(const Duration(days: 3)),
         end: today.add(const Duration(days: 12)),
-        stage: RecruitmentStage.interview,
+        stage: 1,
         applicants: 50,
         idealPercentage: 25,
       ),
@@ -144,7 +159,7 @@ class VacancyFunnelController extends ChangeNotifier {
         assignee: assignees.first,
         start: today.subtract(const Duration(days: 4)),
         end: today.add(const Duration(days: 2)),
-        stage: RecruitmentStage.feedback,
+        stage: 2,
         applicants: 38,
         idealPercentage: 41,
       ),

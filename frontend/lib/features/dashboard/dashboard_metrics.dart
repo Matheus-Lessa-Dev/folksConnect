@@ -1,8 +1,13 @@
 import '../kanban/task.dart';
+import '../../core/funnel_stages.dart';
 
 class DashboardMetrics {
-  DashboardMetrics(Iterable<KanbanTask> tasks, DateTime now, int days)
-    : activities = {for (final stage in RecruitmentStage.values) stage: 0},
+  DashboardMetrics(
+    Iterable<KanbanTask> tasks,
+    DateTime now,
+    int days, {
+    int? stageCount,
+  }) : activities = List.filled(stageCount ?? FunnelStages.defaults.length, 0),
       daily = List.generate(
         days,
         (index) => DailyDeliveries(
@@ -12,7 +17,10 @@ class DashboardMetrics {
     final byDay = {for (final bucket in daily) bucket.date: bucket};
     for (final task in tasks) {
       if (task.status != BoardStatus.done) {
-        activities.update(task.stage, (count) => count + 1);
+        final stage = task.stage >= activities.length
+            ? activities.length - 1
+            : task.stage;
+        activities[stage]++;
         continue;
       }
       deliveries.add(task);
@@ -33,7 +41,8 @@ class DashboardMetrics {
     });
   }
 
-  final Map<RecruitmentStage, int> activities;
+  /// Atividades em aberto por etapa do funil, na ordem das Configurações.
+  final List<int> activities;
   final List<DailyDeliveries> daily;
   final List<KanbanTask> deliveries = [];
 

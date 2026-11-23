@@ -36,7 +36,7 @@ void main() {
       task('sem data', due: today).copyWith(status: BoardStatus.done),
     ];
     final week = DashboardMetrics(tasks, today, 7);
-    expect(week.activities[RecruitmentStage.screening], 1);
+    expect(week.activities[0], 1);
     expect(week.deliveries.map((task) => task.id), [
       'hoje',
       'atrasada',
