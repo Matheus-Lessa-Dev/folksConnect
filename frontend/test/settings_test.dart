@@ -37,6 +37,38 @@ Future<void> tapVisible(WidgetTester tester, Finder finder) async {
 }
 
 void main() {
+  testWidgets('arrastar altera a ordem ao salvar e fechar descarta', (
+    tester,
+  ) async {
+    final controller = SettingsController();
+    addTearDown(controller.dispose);
+    await mount(tester, controller);
+    await tapVisible(tester, find.text('Kanban, Funil e Checklist'));
+    expect(find.byIcon(Icons.drag_indicator), findsWidgets);
+    final first = find.byType(ReorderableDelayedDragStartListener).at(0);
+    final second = find.byType(ReorderableDelayedDragStartListener).at(1);
+    final gesture = await tester.startGesture(tester.getCenter(first));
+    await tester.pump(const Duration(milliseconds: 600));
+    await gesture.moveTo(tester.getCenter(second) + const Offset(0, 25));
+    await tester.pumpAndSettle();
+    await gesture.up();
+    await tester.pumpAndSettle();
+    await tapVisible(tester, find.text('Salvar Alteração'));
+    expect(controller.kanbanStages.first, 'Em andamento');
+    expect(controller.kanbanStages.indexOf('A fazer'), greaterThan(0));
+    final savedOrder = controller.kanbanStages;
+    await tapVisible(tester, find.text('Kanban, Funil e Checklist'));
+    final firstAgain = find.byType(ReorderableDelayedDragStartListener).at(0);
+    final secondAgain = find.byType(ReorderableDelayedDragStartListener).at(1);
+    final discard = await tester.startGesture(tester.getCenter(firstAgain));
+    await tester.pump(const Duration(milliseconds: 600));
+    await discard.moveTo(tester.getCenter(secondAgain) + const Offset(0, 25));
+    await tester.pumpAndSettle();
+    await discard.up();
+    await tester.pumpAndSettle();
+    await tapVisible(tester, find.text('Fechar'));
+    expect(controller.kanbanStages, savedOrder);
+  });
   test('configuração valida todas as seções antes de gravar', () {
     final controller = SettingsController();
     addTearDown(controller.dispose);

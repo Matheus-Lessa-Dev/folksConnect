@@ -9,12 +9,12 @@ Color priorityColor(TaskPriority priority) => switch (priority) {
   TaskPriority.low => FolksColors.green,
 };
 
-Color statusColor(BoardStatus status) => switch (status) {
-  BoardStatus.todo => FolksColors.blue,
-  BoardStatus.inProgress => FolksColors.yellow,
-  BoardStatus.waiting => FolksColors.gold,
-  BoardStatus.done => FolksColors.green,
-};
+Color statusColor(BoardStatus status) {
+  if (status == BoardStatus.todo) return FolksColors.blue;
+  if (status == BoardStatus.inProgress) return FolksColors.yellow;
+  if (status == BoardStatus.done) return FolksColors.green;
+  return FolksColors.gold;
+}
 
 Color projectColor(String project) => switch (project) {
   'Recrutamento' => FolksColors.gold,
@@ -178,10 +178,12 @@ class TaskCard extends StatelessWidget {
     required this.onOpen,
     required this.onMove,
     required this.stages,
+    required this.boardStatuses,
     this.showStageLabels = false,
   });
   final KanbanTask task;
   final List<String> stages;
+  final List<BoardStatus> boardStatuses;
   final VoidCallback onOpen;
   final ValueChanged<BoardStatus> onMove;
   final bool showStageLabels;
@@ -234,7 +236,7 @@ class TaskCard extends StatelessWidget {
                   ),
                   padding: EdgeInsets.zero,
                   onSelected: onMove,
-                  itemBuilder: (_) => BoardStatus.values
+                  itemBuilder: (_) => boardStatuses
                       .where((status) => status != task.status)
                       .map(
                         (status) => PopupMenuItem(

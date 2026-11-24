@@ -1,8 +1,44 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frontend/core/funnel_stages.dart';
 import 'package:frontend/features/settings/settings_controller.dart';
+import 'package:frontend/features/kanban/kanban_controller.dart';
+import 'package:frontend/features/vacancy_funnel/vacancy_funnel_controller.dart';
 
 void main() {
+  test('reordenar etapas preserva a etapa de tarefas e vagas', () {
+    final stages = FunnelStages();
+    final settings = SettingsController(stages: stages);
+    final kanban = KanbanController(stages: stages, settings: settings);
+    final funnel = VacancyFunnelController(stages: stages);
+    addTearDown(stages.dispose);
+    addTearDown(settings.dispose);
+    addTearDown(kanban.dispose);
+    addTearDown(funnel.dispose);
+    final task = kanban.tasks.last;
+    final vacancy = funnel.vacancies.first;
+    final taskLabel = stages.label(task.stage);
+    final vacancyLabel = stages.label(vacancy.stage);
+    settings.saveConfiguration(
+      kanban: settings.kanbanStages.reversed.toList(),
+      funnel: stages.names.reversed.toList(),
+      checklist: settings.checklist.reversed.toList(),
+      funnelPreviousIndices: [3, 2, 1, 0],
+    );
+    expect(stages.label(kanban.tasks.last.stage), taskLabel);
+    expect(stages.label(funnel.vacancies.first.stage), vacancyLabel);
+    expect(
+      kanban.boardStatuses.map((item) => item.label),
+      settings.kanbanStages,
+    );
+    expect(
+      kanban.configuredChecklist.map((item) => item.title),
+      settings.checklist,
+    );
+    expect(
+      kanban.tasks.first.checklist.map((item) => item.title),
+      settings.checklist,
+    );
+  });
   test('rótulo, limite e etapas seguintes seguem a lista atual', () {
     final stages = FunnelStages(['A', 'B', 'C']);
     addTearDown(stages.dispose);

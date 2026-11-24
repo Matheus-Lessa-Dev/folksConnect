@@ -23,11 +23,27 @@ class FunnelVacancy {
   final DateTime start;
   final DateTime end;
   final List<String> channels;
+
   /// Posição da etapa na lista de etapas do funil (Configurações).
   final int stage;
   final int applicants;
   final int idealPercentage;
   final int screeningErrors;
+
+  FunnelVacancy withStage(int value) => FunnelVacancy(
+    id: id,
+    role: role,
+    company: company,
+    profile: profile,
+    assignee: assignee,
+    start: start,
+    end: end,
+    channels: channels,
+    stage: value,
+    applicants: applicants,
+    idealPercentage: idealPercentage,
+    screeningErrors: screeningErrors,
+  );
 
   int daysOpen(DateTime now) => _day(now).difference(_day(start)).inDays;
 
