@@ -82,7 +82,7 @@ class _NewTaskSheetState extends State<NewTaskSheet> {
       start: _start!,
       end: _end!,
       priority: _priority,
-      checklist: KanbanController.defaultChecklist,
+      checklist: widget.controller.configuredChecklist,
     );
     widget.controller.add(task);
     Navigator.pop(context, task);

@@ -6,6 +6,7 @@ import 'package:frontend/features/kanban/kanban_controller.dart';
 import 'package:frontend/features/kanban/kanban_screen.dart';
 import 'package:frontend/features/kanban/task.dart';
 import 'package:frontend/features/kanban/widgets/kanban_widgets.dart';
+import 'package:frontend/features/settings/settings_controller.dart';
 
 Future<void> mount(
   WidgetTester tester,
@@ -40,6 +41,33 @@ Future<void> tapVisible(WidgetTester tester, Finder finder) async {
 }
 
 void main() {
+  testWidgets('coluna configurada aparece e recebe tarefas', (tester) async {
+    final settings = SettingsController();
+    final controller = KanbanController(settings: settings);
+    addTearDown(settings.dispose);
+    addTearDown(controller.dispose);
+    await mount(tester, controller);
+    settings.saveConfiguration(
+      kanban: [...settings.kanbanStages, 'Revisão'],
+      funnel: settings.funnelStages,
+      checklist: settings.checklist,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Lista'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Mover tarefa').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Mover para Revisão'));
+    await tester.pumpAndSettle();
+    expect(controller.tasks.first.status, const BoardStatus('Revisão'));
+    expect(find.text('Revisão'), findsOneWidget);
+    await tester.tap(find.text('Kanban'));
+    await tester.pumpAndSettle();
+    await tester.drag(find.byType(Scrollbar).first, const Offset(-2000, 0));
+    await tester.pumpAndSettle();
+    expect(find.text('REVISÃO'), findsOneWidget);
+  });
+
   test('avançar altera etapa e responsável sem misturar status do quadro', () {
     final controller = KanbanController();
     addTearDown(controller.dispose);

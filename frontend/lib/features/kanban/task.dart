@@ -1,13 +1,21 @@
 import 'dart:typed_data';
 
-enum BoardStatus {
-  todo('A fazer'),
-  inProgress('Em andamento'),
-  waiting('Aguardando'),
-  done('Concluído');
-
+class BoardStatus {
   const BoardStatus(this.label);
+  static const todo = BoardStatus('A fazer');
+  static const inProgress = BoardStatus('Em andamento');
+  static const waiting = BoardStatus('Aguardando');
+  static const done = BoardStatus('Concluído');
+  static const values = [todo, inProgress, waiting, done];
+
   final String label;
+
+  @override
+  bool operator ==(Object other) =>
+      other is BoardStatus && other.label.toLowerCase() == label.toLowerCase();
+
+  @override
+  int get hashCode => label.toLowerCase().hashCode;
 }
 
 enum TaskPriority {
@@ -62,6 +70,7 @@ class KanbanTask {
   final DateTime end;
   final TaskPriority priority;
   final BoardStatus status;
+
   /// Posição da etapa na lista de etapas do funil (Configurações).
   final int stage;
   final DateTime? completedAt;

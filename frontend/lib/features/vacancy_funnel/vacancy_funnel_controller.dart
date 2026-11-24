@@ -11,11 +11,21 @@ class VacancyFunnelController extends ChangeNotifier {
     FunnelStages? stages,
   }) : stages = stages ?? FunnelStages(),
        _vacancies = List.of(vacancies ?? demoVacancies(now ?? DateTime.now())) {
-    this.stages.addListener(notifyListeners);
+    this.stages.addListener(_stagesChanged);
   }
 
   /// Etapas do funil cadastradas em Configurações.
   final FunnelStages stages;
+
+  void _stagesChanged() {
+    for (var index = 0; index < _vacancies.length; index++) {
+      final vacancy = _vacancies[index];
+      _vacancies[index] = vacancy.withStage(
+        stages.remapPrevious(vacancy.stage),
+      );
+    }
+    notifyListeners();
+  }
 
   final List<FunnelVacancy> _vacancies;
   final List<VacancyClient> _clients = [
@@ -34,7 +44,7 @@ class VacancyFunnelController extends ChangeNotifier {
 
   @override
   void dispose() {
-    stages.removeListener(notifyListeners);
+    stages.removeListener(_stagesChanged);
     super.dispose();
   }
 

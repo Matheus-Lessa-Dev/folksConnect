@@ -191,7 +191,7 @@ class _AuthenticatedWorkspace extends StatefulWidget {
 
 class _AuthenticatedWorkspaceState extends State<_AuthenticatedWorkspace> {
   final _stages = FunnelStages();
-  late final _kanban = KanbanController(stages: _stages);
+  late final _kanban = KanbanController(stages: _stages, settings: _settings);
   late final _funnel = VacancyFunnelController(stages: _stages);
   late final _settings = SettingsController(stages: _stages);
 

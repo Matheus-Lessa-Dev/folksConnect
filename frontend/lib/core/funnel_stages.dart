@@ -9,6 +9,14 @@ class FunnelStages extends ChangeNotifier {
   static const defaults = ['Triagem', 'Entrevista', 'Retorno', 'Contratação'];
 
   List<String> _names;
+  List<int>? _previousToCurrent;
+
+  /// Disponível durante a notificação para preservar a etapa dos registros.
+  int remapPrevious(int stage) {
+    final mapping = _previousToCurrent;
+    if (mapping == null || mapping.isEmpty) return clamp(stage);
+    return mapping[stage.clamp(0, mapping.length - 1)];
+  }
 
   List<String> get names => List.unmodifiable(_names);
   int get length => _names.length;
@@ -27,9 +35,25 @@ class FunnelStages extends ChangeNotifier {
     for (var index = clamp(stage) + 1; index < _names.length; index++) index,
   ];
 
-  void update(List<String> names) {
+  void update(List<String> names, {List<int?>? previousIndices}) {
     if (names.isEmpty) throw ArgumentError('Informe ao menos uma etapa.');
+    if (previousIndices != null && previousIndices.length != names.length) {
+      throw ArgumentError('Mapeamento de etapas inválido.');
+    }
+    final oldNames = _names;
+    _previousToCurrent = List.generate(oldNames.length, (oldIndex) {
+      final newIndex = previousIndices == null
+          ? names.indexWhere(
+              (name) => name.toLowerCase() == oldNames[oldIndex].toLowerCase(),
+            )
+          : previousIndices.indexOf(oldIndex);
+      return newIndex < 0 ? oldIndex.clamp(0, names.length - 1) : newIndex;
+    });
     _names = List.of(names);
-    notifyListeners();
+    try {
+      notifyListeners();
+    } finally {
+      _previousToCurrent = null;
+    }
   }
 }

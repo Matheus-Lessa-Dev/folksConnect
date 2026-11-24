@@ -44,7 +44,8 @@ class SettingsController extends ChangeNotifier {
     'Editar Etapas do CheckList',
   ];
 
-  SettingsController({FunnelStages? stages}) : stages = stages ?? FunnelStages();
+  SettingsController({FunnelStages? stages})
+    : stages = stages ?? FunnelStages();
 
   /// Etapas do funil, compartilhadas com Kanban, funil de vagas e dashboard.
   final FunnelStages stages;
@@ -101,6 +102,7 @@ class SettingsController extends ChangeNotifier {
     required List<String> kanban,
     required List<String> funnel,
     required List<String> checklist,
+    List<int?>? funnelPreviousIndices,
   }) {
     List<String> validated(List<String> items) {
       final clean = items.map((item) => item.trim()).toList();
@@ -120,8 +122,8 @@ class SettingsController extends ChangeNotifier {
     final nextFunnel = validated(funnel);
     final nextChecklist = validated(checklist);
     _kanbanStages = nextKanban;
-    stages.update(nextFunnel);
     _checklist = nextChecklist;
+    stages.update(nextFunnel, previousIndices: funnelPreviousIndices);
     notifyListeners();
   }
 

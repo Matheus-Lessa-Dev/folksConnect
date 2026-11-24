@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../../core/theme/folks_theme.dart';
 import '../../kanban/widgets/kanban_widgets.dart';
@@ -363,9 +364,14 @@ class _NewClientFormState extends State<_NewClientForm> {
                 key: ValueKey('client-${field.key}'),
                 controller: field.value,
                 decoration: InputDecoration(labelText: field.key),
+                inputFormatters: [
+                  if (field.key == 'CNPJ')
+                    _BrazilianNumberFormatter(cnpj: true),
+                  if (field.key == 'Contato') _BrazilianNumberFormatter(),
+                ],
                 keyboardType: field.key == 'Email'
                     ? TextInputType.emailAddress
-                    : field.key == 'Contato'
+                    : field.key == 'Contato' || field.key == 'CNPJ'
                     ? TextInputType.phone
                     : TextInputType.text,
                 validator: (value) {
@@ -406,6 +412,48 @@ class _NewClientFormState extends State<_NewClientForm> {
       ),
     ),
   );
+}
+
+class _BrazilianNumberFormatter extends TextInputFormatter {
+  _BrazilianNumberFormatter({this.cnpj = false});
+  final bool cnpj;
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final digits = newValue.text.replaceAll(RegExp(r'\D'), '');
+    final limit = cnpj ? 14 : 11;
+    final value = digits.substring(
+      0,
+      digits.length > limit ? limit : digits.length,
+    );
+    final beforeCursor = newValue.text
+        .substring(0, newValue.selection.end.clamp(0, newValue.text.length))
+        .replaceAll(RegExp(r'\D'), '')
+        .length
+        .clamp(0, value.length);
+    final buffer = StringBuffer();
+    var cursor = 0;
+    for (var i = 0; i < value.length; i++) {
+      if (cnpj) {
+        if (i == 2 || i == 5) buffer.write('.');
+        if (i == 8) buffer.write('/');
+        if (i == 12) buffer.write('-');
+      } else {
+        if (i == 0) buffer.write('(');
+        if (i == 2) buffer.write(') ');
+        if (i == (value.length > 10 ? 7 : 6)) buffer.write('-');
+      }
+      buffer.write(value[i]);
+      if (i + 1 == beforeCursor) cursor = buffer.length;
+    }
+    return TextEditingValue(
+      text: buffer.toString(),
+      selection: TextSelection.collapsed(offset: cursor),
+    );
+  }
 }
 
 class _ErrorText extends StatelessWidget {
