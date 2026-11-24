@@ -272,7 +272,7 @@ class _VacancyDetailsSheetState extends State<VacancyDetailsSheet> {
           _value('E-mail', client?.email ?? '', icon: Icons.mail_outline),
           const SizedBox(height: 8),
           _metric('Candidatos inscritos', _applicants),
-          _metric('Candidatos ideais', _ideal, suffix: '%'),
+          _metric('Candidatos ideais', _ideal, max: 100, suffix: '%'),
           _metric('Erros de triagem', _errors),
           const SizedBox(height: 8),
           FieldLabel(

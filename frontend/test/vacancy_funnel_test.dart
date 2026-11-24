@@ -92,7 +92,7 @@ void main() {
       findsOneWidget,
     );
 
-    final profile = find.byType(TextFormField);
+    final profile = find.byType(TextFormField).last;
     await tester.ensureVisible(profile);
     await tester.enterText(profile, 'Perfil revisado para a vaga.');
     await tapVisible(tester, find.text('Salvar'));
