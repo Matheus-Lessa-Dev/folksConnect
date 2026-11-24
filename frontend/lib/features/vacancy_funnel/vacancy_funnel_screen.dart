@@ -107,6 +107,7 @@ class _VacancyFunnelScreenState extends State<VacancyFunnelScreen> {
                         constraints: const BoxConstraints(maxWidth: 700),
                         child: _VacancyCard(
                           vacancies[index],
+                          stages: _controller.stages.names,
                           onTap: () => _open(vacancies[index]),
                         ),
                       ),
@@ -144,8 +145,13 @@ class _VacancyFunnelScreenState extends State<VacancyFunnelScreen> {
 }
 
 class _VacancyCard extends StatelessWidget {
-  const _VacancyCard(this.vacancy, {required this.onTap});
+  const _VacancyCard(
+    this.vacancy, {
+    required this.stages,
+    required this.onTap,
+  });
   final FunnelVacancy vacancy;
+  final List<String> stages;
   final VoidCallback onTap;
 
   Widget _metric(String value, String label) => Expanded(
@@ -234,7 +240,7 @@ class _VacancyCard extends StatelessWidget {
                 style: const TextStyle(color: FolksColors.muted, fontSize: 10),
               ),
               const SizedBox(height: 12),
-              Pipeline(vacancy.stage),
+              Pipeline(stages: stages, current: vacancy.stage),
               const SizedBox(height: 12),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,

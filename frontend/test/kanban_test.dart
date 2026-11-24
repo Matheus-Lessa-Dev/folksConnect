@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:frontend/core/funnel_stages.dart';
 import 'package:frontend/core/theme/folks_theme.dart';
 import 'package:frontend/features/kanban/kanban_controller.dart';
 import 'package:frontend/features/kanban/kanban_screen.dart';
 import 'package:frontend/features/kanban/task.dart';
+import 'package:frontend/features/kanban/widgets/kanban_widgets.dart';
+import 'package:frontend/features/settings/settings_controller.dart';
 
 Future<void> mount(
   WidgetTester tester,
@@ -38,22 +41,49 @@ Future<void> tapVisible(WidgetTester tester, Finder finder) async {
 }
 
 void main() {
+  testWidgets('coluna configurada aparece e recebe tarefas', (tester) async {
+    final settings = SettingsController();
+    final controller = KanbanController(settings: settings);
+    addTearDown(settings.dispose);
+    addTearDown(controller.dispose);
+    await mount(tester, controller);
+    settings.saveConfiguration(
+      kanban: [...settings.kanbanStages, 'Revisão'],
+      funnel: settings.funnelStages,
+      checklist: settings.checklist,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Lista'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Mover tarefa').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Mover para Revisão'));
+    await tester.pumpAndSettle();
+    expect(controller.tasks.first.status, const BoardStatus('Revisão'));
+    expect(find.text('Revisão'), findsOneWidget);
+    await tester.tap(find.text('Kanban'));
+    await tester.pumpAndSettle();
+    await tester.drag(find.byType(Scrollbar).first, const Offset(-2000, 0));
+    await tester.pumpAndSettle();
+    expect(find.text('REVISÃO'), findsOneWidget);
+  });
+
   test('avançar altera etapa e responsável sem misturar status do quadro', () {
     final controller = KanbanController();
     addTearDown(controller.dispose);
     final task = controller.tasks.first;
     controller.advance(
       task.id,
-      RecruitmentStage.interview,
+      1,
       KanbanController.assignees[2],
     );
-    expect(controller.tasks.first.stage, RecruitmentStage.interview);
+    expect(controller.tasks.first.stage, 1);
     expect(controller.tasks.first.assignee, KanbanController.assignees[2]);
     expect(controller.tasks.first.status, BoardStatus.todo);
     expect(
       () => controller.advance(
         task.id,
-        RecruitmentStage.screening,
+        0,
         task.assignee,
       ),
       throwsArgumentError,
@@ -61,7 +91,7 @@ void main() {
     expect(
       () => controller.advance(
         task.id,
-        RecruitmentStage.interview,
+        1,
         task.assignee,
       ),
       throwsArgumentError,
@@ -105,18 +135,18 @@ void main() {
     expect(find.text('Triagem de currículos'), findsNothing);
     final card = find.byKey(const ValueKey('open-demo-screening'));
     expect(card, findsOneWidget);
-    for (final stage in RecruitmentStage.values) {
+    for (final label in controller.stages.names) {
       expect(
-        find.descendant(of: card, matching: find.text(stage.label)),
+        find.descendant(of: card, matching: find.text(label)),
         findsNothing,
       );
     }
     await tester.tap(find.text('Lista'));
     await tester.pumpAndSettle();
     expect(controller.listView, isTrue);
-    for (final stage in RecruitmentStage.values) {
+    for (final label in controller.stages.names) {
       expect(
-        find.descendant(of: card, matching: find.text(stage.label)),
+        find.descendant(of: card, matching: find.text(label)),
         findsOneWidget,
       );
     }
@@ -175,15 +205,90 @@ void main() {
     await tapVisible(tester, find.text('Avançar Etapa'));
     await tester.tap(find.text('Cancelar'));
     await tester.pumpAndSettle();
-    expect(controller.tasks.first.stage, RecruitmentStage.screening);
+    expect(controller.tasks.first.stage, 0);
     await tapVisible(tester, find.text('Avançar Etapa'));
     await tester.tap(find.text('Concluir'));
     await tester.pumpAndSettle();
-    expect(controller.tasks.first.stage, RecruitmentStage.interview);
+    expect(controller.tasks.first.stage, 1);
     await tapVisible(tester, find.text('Fechar'));
     await tester.tap(find.byKey(const ValueKey('open-demo-screening')));
     await tester.pumpAndSettle();
     expect(controller.tasks.first.checklist.first.done, isTrue);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('selo de status mostra a etapa e permite escolher a próxima', (
+    tester,
+  ) async {
+    final controller = KanbanController();
+    addTearDown(controller.dispose);
+    await mount(tester, controller);
+    await tester.tap(find.byKey(const ValueKey('open-demo-screening')));
+    await tester.pumpAndSettle();
+    final badge = find.byKey(const ValueKey('stage-badge'));
+    expect(
+      find.descendant(of: badge, matching: find.text('Triagem')),
+      findsOneWidget,
+    );
+    await tapVisible(tester, badge);
+    expect(find.text('AVANÇAR ETAPA'), findsOneWidget);
+    await tester.tap(find.text('Concluir'));
+    await tester.pumpAndSettle();
+    expect(controller.tasks.first.stage, 1);
+    expect(
+      find.descendant(of: badge, matching: find.text('Entrevista')),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('barras e selo seguem as etapas cadastradas nas configurações', (
+    tester,
+  ) async {
+    final stages = FunnelStages(['Recebido', 'Análise', 'Proposta']);
+    addTearDown(stages.dispose);
+    final controller = KanbanController(stages: stages);
+    addTearDown(controller.dispose);
+    await mount(tester, controller);
+    await tester.tap(find.byKey(const ValueKey('open-demo-screening')));
+    await tester.pumpAndSettle();
+    final badge = find.byKey(const ValueKey('stage-badge'));
+    expect(
+      find.descendant(of: badge, matching: find.text('Recebido')),
+      findsOneWidget,
+    );
+    // "Triagem" também é nome de projeto nas tarefas de demonstração; por isso
+    // as checagens olham só as barrinhas de etapa.
+    final bars = find.byType(Pipeline);
+    expect(
+      find.descendant(of: bars, matching: find.text('Triagem')),
+      findsNothing,
+    );
+    expect(
+      find.descendant(of: bars, matching: find.text('Análise')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: bars, matching: find.text('Proposta')),
+      findsOneWidget,
+    );
+
+    // Alterar as etapas nas configurações atualiza as barras já abertas.
+    stages.update(['Recebido', 'Análise', 'Proposta', 'Fechado']);
+    await tester.pumpAndSettle();
+    expect(
+      find.descendant(of: bars, matching: find.text('Fechado')),
+      findsOneWidget,
+    );
+
+    await tapVisible(tester, badge);
+    await tester.tap(find.text('Concluir'));
+    await tester.pumpAndSettle();
+    expect(controller.tasks.first.stage, 1);
+    expect(
+      find.descendant(of: badge, matching: find.text('Análise')),
+      findsOneWidget,
+    );
     expect(tester.takeException(), isNull);
   });
 

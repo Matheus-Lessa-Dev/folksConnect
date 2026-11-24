@@ -186,7 +186,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         const SizedBox(height: 12),
                         _option(
                           'Kanban, Funil e Checklist',
-                          'Gerenciar status do Kanban, etapas do funil de vagas e o Checklist Padrão',
+                          'Gerenciar status do Kanban, etapas do funil de vagas e o Checklist Padrão.',
                           () => _sheet<void>(
                             context,
                             _ConfigurationSheet(controller: widget.controller),
@@ -330,6 +330,16 @@ class _ConfigurationSheetState extends State<_ConfigurationSheet> {
           )
           .toList();
   final _form = GlobalKey<FormState>();
+  late final Map<TextEditingController, int> _originalFunnelIndices;
+
+  @override
+  void initState() {
+    super.initState();
+    _originalFunnelIndices = {
+      for (var index = 0; index < _sections[1].length; index++)
+        _sections[1][index]: index,
+    };
+  }
 
   @override
   void dispose() {
@@ -350,6 +360,9 @@ class _ConfigurationSheetState extends State<_ConfigurationSheet> {
       kanban: values[0],
       funnel: values[1],
       checklist: values[2],
+      funnelPreviousIndices: _sections[1]
+          .map((field) => _originalFunnelIndices[field])
+          .toList(),
     );
     Navigator.pop(context);
     ScaffoldMessenger.of(context).showSnackBar(
@@ -385,72 +398,99 @@ class _ConfigurationSheetState extends State<_ConfigurationSheet> {
             ),
             child: Column(
               children: [
-                for (var index = 0; index < _sections[section].length; index++)
-                  Row(
-                    key: ObjectKey(_sections[section][index]),
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Padding(
-                        padding: EdgeInsets.only(top: 20),
-                        child: Icon(
-                          Icons.circle,
-                          size: 5,
-                          color: FolksColors.orange,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Semantics(
-                          label: 'Item ${index + 1}',
-                          child: TextFormField(
-                            controller: _sections[section][index],
-                            style: const TextStyle(fontSize: 12),
-                            decoration: InputDecoration(
-                              hintText: 'Nome do item',
-                              isDense: true,
-                              filled: false,
-                              contentPadding: const EdgeInsets.symmetric(
-                                vertical: 8,
+                ReorderableListView(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  buildDefaultDragHandles: false,
+                  onReorderItem: (oldIndex, newIndex) => setState(() {
+                    final field = _sections[section].removeAt(oldIndex);
+                    _sections[section].insert(newIndex, field);
+                  }),
+                  children: [
+                    for (
+                      var index = 0;
+                      index < _sections[section].length;
+                      index++
+                    )
+                      Row(
+                        key: ObjectKey(_sections[section][index]),
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ReorderableDelayedDragStartListener(
+                            index: index,
+                            child: Semantics(
+                              label:
+                                  'Reordenar ${_sections[section][index].text}',
+                              child: const SizedBox(
+                                width: 32,
+                                height: 48,
+                                child: Icon(
+                                  Icons.drag_indicator,
+                                  size: 20,
+                                  color: FolksColors.muted,
+                                ),
                               ),
-                              border: InputBorder.none,
-                              enabledBorder: InputBorder.none,
                             ),
-                            validator: (value) {
-                              final text = value?.trim() ?? '';
-                              if (text.isEmpty) return 'Preencha este item.';
-                              if (_sections[section]
-                                      .where(
-                                        (item) =>
-                                            item.text.trim().toLowerCase() ==
-                                            text.toLowerCase(),
-                                      )
-                                      .length >
-                                  1) {
-                                return 'Este item já existe nesta seção.';
-                              }
-                              return null;
-                            },
                           ),
-                        ),
+                          Expanded(
+                            child: Semantics(
+                              label: 'Item ${index + 1}',
+                              child: TextFormField(
+                                controller: _sections[section][index],
+                                style: const TextStyle(fontSize: 12),
+                                decoration: InputDecoration(
+                                  hintText: 'Nome do item',
+                                  isDense: true,
+                                  filled: false,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    vertical: 8,
+                                  ),
+                                  border: InputBorder.none,
+                                  enabledBorder: InputBorder.none,
+                                ),
+                                validator: (value) {
+                                  final text = value?.trim() ?? '';
+                                  if (text.isEmpty) {
+                                    return 'Preencha este item.';
+                                  }
+                                  if (_sections[section]
+                                          .where(
+                                            (item) =>
+                                                item.text
+                                                    .trim()
+                                                    .toLowerCase() ==
+                                                text.toLowerCase(),
+                                          )
+                                          .length >
+                                      1) {
+                                    return 'Este item já existe nesta seção.';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            tooltip: 'Remover item ${index + 1}',
+                            icon: const Icon(Icons.close, size: 16),
+                            onPressed: _sections[section].length == 1
+                                ? null
+                                : () {
+                                    final field = _sections[section][index];
+                                    setState(
+                                      () => _sections[section].removeAt(index),
+                                    );
+                                    // Aguarde o TextFormField desmontar antes de liberar seu controller.
+                                    WidgetsBinding.instance
+                                        .addPostFrameCallback(
+                                          (_) => field.dispose(),
+                                        );
+                                  },
+                          ),
+                        ],
                       ),
-                      IconButton(
-                        tooltip: 'Remover item ${index + 1}',
-                        icon: const Icon(Icons.close, size: 16),
-                        onPressed: _sections[section].length == 1
-                            ? null
-                            : () {
-                                final field = _sections[section][index];
-                                setState(
-                                  () => _sections[section].removeAt(index),
-                                );
-                                // Aguarde o TextFormField desmontar antes de liberar seu controller.
-                                WidgetsBinding.instance.addPostFrameCallback(
-                                  (_) => field.dispose(),
-                                );
-                              },
-                      ),
-                    ],
-                  ),
+                  ],
+                ),
                 Align(
                   alignment: Alignment.centerLeft,
                   child: TextButton(

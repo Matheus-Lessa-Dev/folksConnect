@@ -75,17 +75,36 @@ class _TaskDetailsSheetState extends State<TaskDetailsSheet> {
     _checklistTitle.clear();
   }
 
+  void _advance(KanbanTask task) => showDialog<void>(
+    context: context,
+    builder: (_) =>
+        AdvanceStageDialog(controller: widget.controller, taskId: task.id),
+  );
+
   @override
   Widget build(BuildContext context) => ListenableBuilder(
     listenable: widget.controller,
     builder: (context, _) {
       final task = _task;
+      final stages = widget.controller.stages;
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Align(
-            alignment: Alignment.centerLeft,
-            child: ProjectBadge(task.project),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              StageBadge(
+                stages.label(task.stage),
+                last: stages.following(task.stage).isEmpty,
+                key: const ValueKey('stage-badge'),
+                onTap: stages.following(task.stage).isEmpty
+                    ? null
+                    : () => _advance(task),
+              ),
+              ProjectBadge(task.project),
+            ],
           ),
           const SizedBox(height: 12),
           Text(task.title, style: FolksTheme.heading.copyWith(fontSize: 24)),
@@ -95,7 +114,7 @@ class _TaskDetailsSheetState extends State<TaskDetailsSheet> {
             style: const TextStyle(color: FolksColors.muted, fontSize: 12),
           ),
           const SizedBox(height: 16),
-          Pipeline(task.stage),
+          Pipeline(stages: stages.names, current: task.stage),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 16),
             child: Divider(color: FolksColors.border),
@@ -281,18 +300,12 @@ class _TaskDetailsSheetState extends State<TaskDetailsSheet> {
             ),
           ),
           SheetActions(
-            primaryLabel: task.stage.following.isEmpty
+            primaryLabel: stages.following(task.stage).isEmpty
                 ? 'Última etapa do funil'
                 : 'Avançar Etapa',
-            onPrimary: task.stage.following.isEmpty
+            onPrimary: stages.following(task.stage).isEmpty
                 ? null
-                : () => showDialog<void>(
-                    context: context,
-                    builder: (_) => AdvanceStageDialog(
-                      controller: widget.controller,
-                      taskId: task.id,
-                    ),
-                  ),
+                : () => _advance(task),
             onClose: () => Navigator.pop(context),
           ),
         ],
@@ -319,7 +332,7 @@ class _AdvanceStageDialogState extends State<AdvanceStageDialog> {
     (task) => task.id == widget.taskId,
   );
   late String _assignee = _task.assignee;
-  late RecruitmentStage _stage = _task.stage.following.first;
+  late int _stage = widget.controller.stages.following(_task.stage).first;
 
   @override
   Widget build(BuildContext context) => AlertDialog(
@@ -353,14 +366,15 @@ class _AdvanceStageDialogState extends State<AdvanceStageDialog> {
             ),
             FieldLabel(
               'Etapa seguinte',
-              child: DropdownButtonFormField<RecruitmentStage>(
+              child: DropdownButtonFormField<int>(
                 initialValue: _stage,
                 isExpanded: true,
-                items: _task.stage.following
+                items: widget.controller.stages
+                    .following(_task.stage)
                     .map(
                       (stage) => DropdownMenuItem(
                         value: stage,
-                        child: Text(stage.label),
+                        child: Text(widget.controller.stages.label(stage)),
                       ),
                     )
                     .toList(),

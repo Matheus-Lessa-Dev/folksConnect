@@ -1,13 +1,65 @@
 import 'package:flutter/foundation.dart';
 
 import 'task.dart';
+import '../../core/funnel_stages.dart';
+import '../settings/settings_controller.dart';
 
 /// Estado de demonstracao. A API existente ainda so expoe health check.
 /// O controller nao grava nem simula gravacao no backend.
 class KanbanController extends ChangeNotifier {
-  KanbanController({List<KanbanTask>? tasks, DateTime Function()? now})
-    : _tasks = List.of(tasks ?? demoTasks()),
-      _now = now ?? DateTime.now;
+  KanbanController({
+    List<KanbanTask>? tasks,
+    DateTime Function()? now,
+    FunnelStages? stages,
+    this.settings,
+  }) : stages = stages ?? FunnelStages(),
+       _tasks = List.of(tasks ?? demoTasks()),
+       _now = now ?? DateTime.now {
+    this.stages.addListener(_stagesChanged);
+    settings?.addListener(_configurationChanged);
+  }
+
+  /// Etapas do funil cadastradas em Configurações.
+  final FunnelStages stages;
+  final SettingsController? settings;
+
+  List<ChecklistItem> get configuredChecklist => settings == null
+      ? defaultChecklist
+      : settings!.checklist.map(ChecklistItem.new).toList();
+
+  void _stagesChanged() {
+    for (var index = 0; index < _tasks.length; index++) {
+      final task = _tasks[index];
+      _tasks[index] = task.copyWith(stage: stages.remapPrevious(task.stage));
+    }
+    notifyListeners();
+  }
+
+  List<BoardStatus> get boardStatuses => settings == null
+      ? BoardStatus.values
+      : settings!.kanbanStages.map(BoardStatus.new).toList(growable: false);
+
+  void _configurationChanged() {
+    final statuses = boardStatuses;
+    for (var index = 0; index < _tasks.length; index++) {
+      final task = _tasks[index];
+      final items = task.checklist.indexed.toList();
+      final order = settings!.checklist;
+      items.sort((a, b) {
+        final ai = order.indexOf(a.$2.title);
+        final bi = order.indexOf(b.$2.title);
+        final comparison = (ai < 0 ? order.length : ai).compareTo(
+          bi < 0 ? order.length : bi,
+        );
+        return comparison == 0 ? a.$1.compareTo(b.$1) : comparison;
+      });
+      _tasks[index] = task.copyWith(
+        status: statuses.contains(task.status) ? task.status : statuses.first,
+        checklist: items.map((item) => item.$2).toList(),
+      );
+    }
+    notifyListeners();
+  }
 
   static const projects = [
     'Recrutamento',
@@ -48,6 +100,13 @@ class KanbanController extends ChangeNotifier {
       .where((task) => _filter == 'Todos' || task.project == _filter)
       .toList(growable: false);
 
+  @override
+  void dispose() {
+    stages.removeListener(_stagesChanged);
+    settings?.removeListener(_configurationChanged);
+    super.dispose();
+  }
+
   void filterBy(String project) {
     _filter = project;
     notifyListeners();
@@ -64,6 +123,9 @@ class KanbanController extends ChangeNotifier {
   void add(KanbanTask task) {
     if (task.end.isBefore(task.start)) {
       throw ArgumentError('O fim deve ser igual ou posterior ao início.');
+    }
+    if (!boardStatuses.contains(task.status)) {
+      task = task.copyWith(status: boardStatuses.first);
     }
     _tasks.add(
       task.status == BoardStatus.done && task.completedAt == null
@@ -89,9 +151,9 @@ class KanbanController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void advance(String id, RecruitmentStage stage, String assignee) {
+  void advance(String id, int stage, String assignee) {
     final task = _tasks.firstWhere((item) => item.id == id);
-    if (!task.stage.following.contains(stage)) {
+    if (!stages.following(task.stage).contains(stage)) {
       throw ArgumentError('Selecione uma etapa posterior à etapa atual.');
     }
     update(task.copyWith(stage: stage, assignee: assignee));
@@ -148,7 +210,7 @@ class KanbanController extends ChangeNotifier {
         start: day,
         end: day.add(const Duration(days: 5)),
         status: BoardStatus.inProgress,
-        stage: RecruitmentStage.interview,
+        stage: 1,
         priority: TaskPriority.high,
         checklist: defaultChecklist,
       ),

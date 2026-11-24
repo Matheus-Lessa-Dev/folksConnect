@@ -148,7 +148,7 @@ void main() {
       expect(controller.vacancies, isEmpty);
       create(DateTime(2026, 10, 26));
       final vacancy = controller.vacancies.single;
-      expect(vacancy.stage, RecruitmentStage.screening);
+      expect(vacancy.stage, 0);
       expect(vacancy.applicants, 0);
       expect(vacancy.idealPercentage, 0);
       expect(() => vacancy.channels.add('Outro'), throwsUnsupportedError);
@@ -162,7 +162,7 @@ void main() {
     addTearDown(controller.dispose);
     await mount(tester, controller);
     expect(find.text('Nenhuma vaga cadastrada.'), findsOneWidget);
-    await tester.tap(find.text('+ Vaga'));
+    await tester.tap(find.byTooltip('Nova vaga'));
     await tester.pumpAndSettle();
     expect(find.text('Início:'), findsOneWidget);
     expect(find.text('Fim:'), findsOneWidget);
@@ -212,8 +212,14 @@ void main() {
       find.byKey(const ValueKey('client-Empresa')),
       'Empresa Exemplo',
     );
+    await tester.enterText(find.byKey(const ValueKey('client-CNPJ')), '12345678000199999');
+    await tester.enterText(find.byKey(const ValueKey('client-Contato')), '1198765432199');
+    expect(find.text('12.345.678/0001-99'), findsOneWidget);
+    expect(find.text('(11) 98765-4321'), findsOneWidget);
     await tapVisible(tester, find.text('Salvar cliente'));
     expect(controller.clients.last.company, 'Empresa Exemplo');
+    expect(controller.clients.last.cnpj, '12.345.678/0001-99');
+    expect(controller.clients.last.contact, '(11) 98765-4321');
     await tapVisible(tester, find.byKey(const Key('vacancy-profile')));
     await tester.enterText(
       find.byKey(const Key('vacancy-profile')),

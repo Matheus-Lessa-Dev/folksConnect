@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'core/funnel_stages.dart';
 import 'core/theme/folks_theme.dart';
 import 'features/auth/authentication_service.dart';
 import 'features/auth/login_screen.dart';
@@ -189,15 +190,17 @@ class _AuthenticatedWorkspace extends StatefulWidget {
 }
 
 class _AuthenticatedWorkspaceState extends State<_AuthenticatedWorkspace> {
-  final _kanban = KanbanController();
-  final _funnel = VacancyFunnelController();
-  final _settings = SettingsController();
+  final _stages = FunnelStages();
+  late final _kanban = KanbanController(stages: _stages, settings: _settings);
+  late final _funnel = VacancyFunnelController(stages: _stages);
+  late final _settings = SettingsController(stages: _stages);
 
   @override
   void dispose() {
     _kanban.dispose();
     _funnel.dispose();
     _settings.dispose();
+    _stages.dispose();
     super.dispose();
   }
 

@@ -9,12 +9,12 @@ Color priorityColor(TaskPriority priority) => switch (priority) {
   TaskPriority.low => FolksColors.green,
 };
 
-Color statusColor(BoardStatus status) => switch (status) {
-  BoardStatus.todo => FolksColors.blue,
-  BoardStatus.inProgress => FolksColors.yellow,
-  BoardStatus.waiting => FolksColors.gold,
-  BoardStatus.done => FolksColors.green,
-};
+Color statusColor(BoardStatus status) {
+  if (status == BoardStatus.todo) return FolksColors.blue;
+  if (status == BoardStatus.inProgress) return FolksColors.yellow;
+  if (status == BoardStatus.done) return FolksColors.green;
+  return FolksColors.gold;
+}
 
 Color projectColor(String project) => switch (project) {
   'Recrutamento' => FolksColors.gold,
@@ -49,19 +49,88 @@ class ProjectBadge extends StatelessWidget {
   }
 }
 
+/// Status do cartao conforme a etapa atual do funil. Havendo etapa seguinte,
+/// o toque permite escolher a proxima.
+class StageBadge extends StatelessWidget {
+  const StageBadge(this.label, {super.key, this.onTap, this.last = false});
+  final String label;
+  final VoidCallback? onTap;
+
+  /// Etapa final do funil: o selo fica verde.
+  final bool last;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = last ? FolksColors.green : FolksColors.gold;
+    final textColor = last ? FolksColors.green : const Color(0xFFAC7103);
+    return Semantics(
+      button: onTap != null,
+      label: onTap == null
+          ? 'Status: $label'
+          : 'Status: $label. Escolher a próxima etapa',
+      excludeSemantics: true,
+      onTap: onTap,
+      child: Material(
+        color: color.withValues(alpha: .13),
+        shape: StadiumBorder(
+          side: BorderSide(color: color.withValues(alpha: .6)),
+        ),
+        child: InkWell(
+          customBorder: const StadiumBorder(),
+          onTap: onTap,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 36),
+            child: Padding(
+              padding: EdgeInsets.only(left: 12, right: onTap == null ? 12 : 6),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    child: Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: textColor,
+                      ),
+                    ),
+                  ),
+                  if (onTap != null)
+                    Icon(Icons.arrow_drop_down, size: 20, color: textColor),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Barrinhas de progresso: uma por etapa cadastrada em Configurações.
 class Pipeline extends StatelessWidget {
-  const Pipeline(this.stage, {super.key, this.labels = true});
-  final RecruitmentStage stage;
+  const Pipeline({
+    super.key,
+    required this.stages,
+    required this.current,
+    this.labels = true,
+  });
+  final List<String> stages;
+  final int current;
   final bool labels;
 
   @override
-  Widget build(BuildContext context) => Semantics(
-    label: 'Etapa atual: ${stage.label}',
-    child: ExcludeSemantics(
-      child: Row(
-        children: RecruitmentStage.values
-            .map(
-              (item) => Expanded(
+  Widget build(BuildContext context) {
+    final active = current >= stages.length ? stages.length - 1 : current;
+    return Semantics(
+      label: 'Etapa atual: ${stages[active]}',
+      child: ExcludeSemantics(
+        child: Row(
+          children: [
+            for (var index = 0; index < stages.length; index++)
+              Expanded(
                 child: Padding(
                   padding: const EdgeInsets.only(right: 4),
                   child: Column(
@@ -70,10 +139,10 @@ class Pipeline extends StatelessWidget {
                       Container(
                         height: 4,
                         decoration: BoxDecoration(
-                          color: item.index < stage.index
-                                    ? FolksColors.green
-                                    : item.index == stage.index
-                                    ? FolksColors.gold
+                          color: index < active
+                              ? FolksColors.green
+                              : index == active
+                              ? FolksColors.gold
                               : Colors.grey,
                           borderRadius: BorderRadius.circular(4),
                         ),
@@ -81,8 +150,10 @@ class Pipeline extends StatelessWidget {
                       if (labels) ...[
                         const SizedBox(height: 5),
                         Text(
-                          item.label,
+                          stages[index],
                           textAlign: TextAlign.center,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             fontSize: 10,
                             color: FolksColors.muted,
@@ -93,11 +164,11 @@ class Pipeline extends StatelessWidget {
                   ),
                 ),
               ),
-            )
-            .toList(),
+          ],
+        ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 class TaskCard extends StatelessWidget {
@@ -106,9 +177,13 @@ class TaskCard extends StatelessWidget {
     required this.task,
     required this.onOpen,
     required this.onMove,
+    required this.stages,
+    required this.boardStatuses,
     this.showStageLabels = false,
   });
   final KanbanTask task;
+  final List<String> stages;
+  final List<BoardStatus> boardStatuses;
   final VoidCallback onOpen;
   final ValueChanged<BoardStatus> onMove;
   final bool showStageLabels;
@@ -161,7 +236,7 @@ class TaskCard extends StatelessWidget {
                   ),
                   padding: EdgeInsets.zero,
                   onSelected: onMove,
-                  itemBuilder: (_) => BoardStatus.values
+                  itemBuilder: (_) => boardStatuses
                       .where((status) => status != task.status)
                       .map(
                         (status) => PopupMenuItem(
@@ -175,7 +250,11 @@ class TaskCard extends StatelessWidget {
             ),
             Text(task.title, style: FolksTheme.heading.copyWith(fontSize: 18)),
             const SizedBox(height: 12),
-            Pipeline(task.stage, labels: showStageLabels),
+            Pipeline(
+              stages: stages,
+              current: task.stage,
+              labels: showStageLabels,
+            ),
             const SizedBox(height: 10),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,

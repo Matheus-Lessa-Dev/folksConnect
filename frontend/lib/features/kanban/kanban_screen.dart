@@ -48,6 +48,8 @@ class _KanbanScreenState extends State<KanbanScreen> {
 
   Widget _card(KanbanTask task, {bool showStageLabels = false}) => TaskCard(
     task: task,
+    stages: _controller.stages.names,
+    boardStatuses: _controller.boardStatuses,
     showStageLabels: showStageLabels,
     onOpen: () => _open(task),
     onMove: (status) {
@@ -76,7 +78,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: BoardStatus.values.map((status) {
+            children: _controller.boardStatuses.map((status) {
               final tasks = _controller.visibleTasks
                   .where((task) => task.status == status)
                   .toList();
@@ -292,9 +294,9 @@ class _KanbanScreenState extends State<KanbanScreen> {
                           shape: const CircleBorder(),
                           onPressed: _create,
                           child: const Icon(Icons.add, size: 28),
-                          ),
                         ),
                       ),
+                    ),
                   ],
                 ),
               ),

@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import '../../core/funnel_stages.dart';
 
 class SettingsUser {
   SettingsUser({
@@ -43,6 +44,12 @@ class SettingsController extends ChangeNotifier {
     'Editar Etapas do CheckList',
   ];
 
+  SettingsController({FunnelStages? stages})
+    : stages = stages ?? FunnelStages();
+
+  /// Etapas do funil, compartilhadas com Kanban, funil de vagas e dashboard.
+  final FunnelStages stages;
+
   String profileName = '';
   String profileEmail = '';
   String? profileRole;
@@ -79,12 +86,6 @@ class SettingsController extends ChangeNotifier {
     'Aguardando',
     'Concluído',
   ];
-  List<String> _funnelStages = [
-    'Triagem',
-    'Entrevista',
-    'Retorno',
-    'Contratação',
-  ];
   List<String> _checklist = [
     'Coletar currículos inscritos',
     'Filtrar por requisitos mínimos',
@@ -94,13 +95,14 @@ class SettingsController extends ChangeNotifier {
 
   List<SettingsUser> get users => List.unmodifiable(_users);
   List<String> get kanbanStages => List.unmodifiable(_kanbanStages);
-  List<String> get funnelStages => List.unmodifiable(_funnelStages);
+  List<String> get funnelStages => stages.names;
   List<String> get checklist => List.unmodifiable(_checklist);
 
   void saveConfiguration({
     required List<String> kanban,
     required List<String> funnel,
     required List<String> checklist,
+    List<int?>? funnelPreviousIndices,
   }) {
     List<String> validated(List<String> items) {
       final clean = items.map((item) => item.trim()).toList();
@@ -120,8 +122,8 @@ class SettingsController extends ChangeNotifier {
     final nextFunnel = validated(funnel);
     final nextChecklist = validated(checklist);
     _kanbanStages = nextKanban;
-    _funnelStages = nextFunnel;
     _checklist = nextChecklist;
+    stages.update(nextFunnel, previousIndices: funnelPreviousIndices);
     notifyListeners();
   }
 

@@ -1,26 +1,21 @@
 import 'dart:typed_data';
 
-enum BoardStatus {
-  todo('A fazer'),
-  inProgress('Em andamento'),
-  waiting('Aguardando'),
-  done('Concluído');
-
+class BoardStatus {
   const BoardStatus(this.label);
-  final String label;
-}
+  static const todo = BoardStatus('A fazer');
+  static const inProgress = BoardStatus('Em andamento');
+  static const waiting = BoardStatus('Aguardando');
+  static const done = BoardStatus('Concluído');
+  static const values = [todo, inProgress, waiting, done];
 
-enum RecruitmentStage {
-  screening('Triagem'),
-  interview('Entrevista'),
-  feedback('Retorno'),
-  hiring('Contratação');
-
-  const RecruitmentStage(this.label);
   final String label;
 
-  List<RecruitmentStage> get following =>
-      values.where((stage) => stage.index > index).toList();
+  @override
+  bool operator ==(Object other) =>
+      other is BoardStatus && other.label.toLowerCase() == label.toLowerCase();
+
+  @override
+  int get hashCode => label.toLowerCase().hashCode;
 }
 
 enum TaskPriority {
@@ -57,7 +52,7 @@ class KanbanTask {
     required this.end,
     this.priority = TaskPriority.medium,
     this.status = BoardStatus.todo,
-    this.stage = RecruitmentStage.screening,
+    this.stage = 0,
     this.completedAt,
     this.description = '',
     List<ChecklistItem> checklist = const [],
@@ -75,7 +70,9 @@ class KanbanTask {
   final DateTime end;
   final TaskPriority priority;
   final BoardStatus status;
-  final RecruitmentStage stage;
+
+  /// Posição da etapa na lista de etapas do funil (Configurações).
+  final int stage;
   final DateTime? completedAt;
   final String description;
   final List<ChecklistItem> checklist;
@@ -85,7 +82,7 @@ class KanbanTask {
     String? assignee,
     TaskPriority? priority,
     BoardStatus? status,
-    RecruitmentStage? stage,
+    int? stage,
     DateTime? completedAt,
     String? description,
     List<ChecklistItem>? checklist,
