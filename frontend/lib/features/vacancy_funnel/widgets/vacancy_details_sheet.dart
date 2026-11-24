@@ -5,6 +5,7 @@ import '../../kanban/widgets/kanban_widgets.dart';
 import '../vacancy.dart';
 import '../vacancy_funnel_controller.dart';
 import 'vacancy_deadline_fields.dart';
+import 'package:flutter/services.dart';
 
 class VacancyDetailsSheet extends StatefulWidget {
   const VacancyDetailsSheet({
@@ -27,10 +28,22 @@ class _VacancyDetailsSheetState extends State<VacancyDetailsSheet> {
   late DateTime _end = widget.vacancy.end;
   late final _channels = {...widget.vacancy.channels};
   String? _dateError;
+  late final _applicants = TextEditingController(
+    text: '${widget.vacancy.applicants}',
+  );
+  late final _ideal = TextEditingController(
+    text: '${widget.vacancy.idealPercentage}',
+  );
+  late final _errors = TextEditingController(
+    text: '${widget.vacancy.screeningErrors}',
+  );
 
-  @override
+   @override
   void dispose() {
     _profile.dispose();
+    _applicants.dispose();
+    _ideal.dispose();
+    _errors.dispose();
     super.dispose();
   }
 
@@ -112,6 +125,9 @@ class _VacancyDetailsSheetState extends State<VacancyDetailsSheet> {
       end: _end,
       profile: _profile.text.trim(),
       channels: _channels.toList(),
+      applicants: int.parse(_applicants.text),
+      idealPercentage: int.parse(_ideal.text),
+      screeningErrors: int.parse(_errors.text),
     );
     Navigator.pop(context);
   }
@@ -141,13 +157,32 @@ class _VacancyDetailsSheetState extends State<VacancyDetailsSheet> {
     ),
   );
 
-  Widget _metric(String label, String value) => Padding(
+   Widget _metric(
+    String label,
+    TextEditingController controller, {
+    int? max,
+    String suffix = '',
+  }) => Padding(
     padding: const EdgeInsets.only(bottom: 4),
     child: Row(
       children: [
         Expanded(child: Text(label)),
         const SizedBox(width: 12),
-        SizedBox(width: 92, child: _value(label, value)),
+        SizedBox(
+          width: 92,
+          child: TextFormField(
+            controller: controller,
+            keyboardType: TextInputType.number,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            decoration: InputDecoration(suffixText: suffix, isDense: true),
+            validator: (value) {
+              final number = int.tryParse(value ?? '');
+              if (number == null) return 'Informe um número.';
+              if (max != null && number > max) return 'Máximo $max.';
+              return null;
+            },
+          ),
+        ),
       ],
     ),
   );
@@ -233,9 +268,9 @@ class _VacancyDetailsSheetState extends State<VacancyDetailsSheet> {
           _value('Contato', client?.contact ?? '', icon: Icons.phone_outlined),
           _value('E-mail', client?.email ?? '', icon: Icons.mail_outline),
           const SizedBox(height: 8),
-          _metric('Candidatos inscritos', '${vacancy.applicants}'),
-          _metric('Candidatos ideais', '${vacancy.idealPercentage}%'),
-          _metric('Erros de triagem', '${vacancy.screeningErrors}'),
+          _metric('Candidatos inscritos', _applicants),
+          _metric('Candidatos ideais', _ideal, suffix: '%'),
+          _metric('Erros de triagem', _errors),
           const SizedBox(height: 8),
           FieldLabel(
             'Perfil desejado',

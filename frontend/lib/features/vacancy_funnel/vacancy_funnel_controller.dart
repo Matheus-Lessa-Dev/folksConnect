@@ -31,7 +31,10 @@ class VacancyFunnelController extends ChangeNotifier {
     required DateTime start,
     required DateTime end,
     required String profile,
-    required List<String> channels,
+    required List<String> channels, 
+    int? applicants,
+    int? idealPercentage,
+    int? screeningErrors,
   }) {
     final index = _vacancies.indexWhere((item) => item.id == vacancy.id);
     if (index == -1) return;
@@ -48,9 +51,9 @@ class VacancyFunnelController extends ChangeNotifier {
       company: current.company,
       assignee: current.assignee,
       stage: current.stage,
-      applicants: current.applicants,
-      idealPercentage: current.idealPercentage,
-      screeningErrors: current.screeningErrors,
+      applicants: applicants ?? current.applicants,
+      idealPercentage: idealPercentage ?? current.idealPercentage,
+      screeningErrors: screeningErrors ?? current.screeningErrors,
       start: start,
       end: end,
       profile: profile.trim(),
