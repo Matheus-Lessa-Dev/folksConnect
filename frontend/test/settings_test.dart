@@ -1,3 +1,5 @@
+import 'dart:ui' show PointerDeviceKind;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frontend/core/theme/folks_theme.dart';
@@ -45,10 +47,24 @@ void main() {
     await mount(tester, controller);
     await tapVisible(tester, find.text('Kanban, Funil e Checklist'));
     expect(find.byIcon(Icons.drag_indicator), findsWidgets);
-    final first = find.byType(ReorderableDelayedDragStartListener).at(0);
-    final second = find.byType(ReorderableDelayedDragStartListener).at(1);
-    final gesture = await tester.startGesture(tester.getCenter(first));
-    await tester.pump(const Duration(milliseconds: 600));
+    final firstField = find.widgetWithText(TextFormField, 'A fazer');
+    final editable = find.descendant(
+      of: firstField,
+      matching: find.byType(EditableText),
+    );
+    expect(
+      (tester.getCenter(find.byIcon(Icons.drag_indicator).first).dy -
+              tester.getCenter(editable).dy)
+          .abs(),
+      lessThanOrEqualTo(1),
+    );
+    final first = find.byType(ReorderableDragStartListener).at(0);
+    final second = find.byType(ReorderableDragStartListener).at(1);
+    final gesture = await tester.startGesture(
+      tester.getCenter(first),
+      kind: PointerDeviceKind.mouse,
+    );
+    await tester.pump();
     await gesture.moveTo(tester.getCenter(second) + const Offset(0, 25));
     await tester.pumpAndSettle();
     await gesture.up();
@@ -58,8 +74,8 @@ void main() {
     expect(controller.kanbanStages.indexOf('A fazer'), greaterThan(0));
     final savedOrder = controller.kanbanStages;
     await tapVisible(tester, find.text('Kanban, Funil e Checklist'));
-    final firstAgain = find.byType(ReorderableDelayedDragStartListener).at(0);
-    final secondAgain = find.byType(ReorderableDelayedDragStartListener).at(1);
+    final firstAgain = find.byType(ReorderableDragStartListener).at(0);
+    final secondAgain = find.byType(ReorderableDragStartListener).at(1);
     final discard = await tester.startGesture(tester.getCenter(firstAgain));
     await tester.pump(const Duration(milliseconds: 600));
     await discard.moveTo(tester.getCenter(secondAgain) + const Offset(0, 25));

@@ -366,7 +366,11 @@ class _ConfigurationSheetState extends State<_ConfigurationSheet> {
     );
     Navigator.pop(context);
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Alterações salvas nesta sessão.')),
+      const SnackBar(
+        behavior: SnackBarBehavior.floating,
+        margin: EdgeInsets.fromLTRB(16, 0, 16, 110),
+        content: Text('Alterações salvas nesta sessão.'),
+      ),
     );
   }
 
@@ -414,20 +418,23 @@ class _ConfigurationSheetState extends State<_ConfigurationSheet> {
                     )
                       Row(
                         key: ObjectKey(_sections[section][index]),
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          ReorderableDelayedDragStartListener(
+                          ReorderableDragStartListener(
                             index: index,
-                            child: Semantics(
-                              label:
-                                  'Reordenar ${_sections[section][index].text}',
-                              child: const SizedBox(
-                                width: 32,
-                                height: 48,
-                                child: Icon(
-                                  Icons.drag_indicator,
-                                  size: 20,
-                                  color: FolksColors.muted,
+                            child: Tooltip(
+                              message: 'Arraste para reordenar',
+                              child: Semantics(
+                                label:
+                                    'Reordenar ${_sections[section][index].text}',
+                                child: const SizedBox(
+                                  width: 40,
+                                  height: 48,
+                                  child: Icon(
+                                    Icons.drag_indicator,
+                                    size: 20,
+                                    color: FolksColors.muted,
+                                  ),
                                 ),
                               ),
                             ),

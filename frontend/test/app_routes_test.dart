@@ -46,6 +46,42 @@ Future<void> _pushRoute(WidgetTester tester, String path) async {
 }
 
 void main() {
+  testWidgets('cadastra coluna nas configurações e a encontra no quadro', (
+    tester,
+  ) async {
+    await _open(tester, '/login');
+    await _signIn(tester);
+    await tester.tap(find.byTooltip('Configurações'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Kanban, Funil e Checklist'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('+ Adicionar').first);
+    await tester.pumpAndSettle();
+    final board = find.byType(ReorderableListView).first;
+    final field = find
+        .descendant(of: board, matching: find.byType(TextFormField))
+        .last;
+    await tester.enterText(field, 'Revisão');
+    await tester.ensureVisible(find.text('Salvar Alteração'));
+    await tester.tap(find.text('Salvar Alteração'));
+    await tester.pumpAndSettle();
+    expect(find.text('Configurações Gerais'), findsNothing);
+    await tester.tap(find.byTooltip('Kanban'));
+    await tester.pumpAndSettle();
+    final controller = tester
+        .widget<KanbanScreen>(find.byType(KanbanScreen))
+        .controller!;
+    expect(
+      controller.boardStatuses.map((status) => status.label),
+      contains('Revisão'),
+    );
+    for (var i = 0; i < 4; i++) {
+      await tester.tap(find.byTooltip('Próximas colunas'));
+      await tester.pumpAndSettle();
+    }
+    expect(find.text('REVISÃO'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
   testWidgets('/login abre o formulario diretamente', (tester) async {
     await _open(tester, '/login');
     expect(find.byType(LoginScreen), findsOneWidget);
