@@ -23,6 +23,20 @@ class _KanbanScreenState extends State<KanbanScreen> {
   late final _controller = widget.controller ?? KanbanController();
   final _horizontalScroll = ScrollController();
 
+  void _scrollBoard(int direction) {
+    if (!_horizontalScroll.hasClients) return;
+    final position = _horizontalScroll.position;
+    final target = (position.pixels + direction * 290).clamp(
+      position.minScrollExtent,
+      position.maxScrollExtent,
+    );
+    _horizontalScroll.animateTo(
+      target,
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeOut,
+    );
+  }
+
   @override
   void dispose() {
     if (widget.controller == null) _controller.dispose();
@@ -197,8 +211,22 @@ class _KanbanScreenState extends State<KanbanScreen> {
                       child: Text(
                         'Quadro de Tarefas',
                         style: FolksTheme.heading,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
+                    if (!_controller.listView) ...[
+                      IconButton(
+                        tooltip: 'Colunas anteriores',
+                        onPressed: () => _scrollBoard(-1),
+                        icon: const Icon(Icons.chevron_left),
+                      ),
+                      IconButton(
+                        tooltip: 'Próximas colunas',
+                        onPressed: () => _scrollBoard(1),
+                        icon: const Icon(Icons.chevron_right),
+                      ),
+                    ],
                     if (widget.onSignOut != null)
                       IconButton(
                         tooltip: 'Sair',
